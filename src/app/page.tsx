@@ -1,9 +1,5 @@
-import { Sidebar } from '@/components/Sidebar';
+import { redirect } from 'next/navigation'
 
-const Home = () => (
-    <div>
-      <Sidebar />
-    </div>
-)
+const Home = () => redirect('/login')
 
-export default Home;
+export default Home
