@@ -4,6 +4,11 @@ export interface WebSocketCommandMap {
     response: { token: string; user: { id: string; name: string; email: string } }
   }
 
+  'auth.register': {
+    payload: { name: string; email: string; password: string }
+    response: { token: string; user: { id: string; name: string; email: string } }
+  }
+
   'auth.logout': {
     payload: null
     response: { success: boolean }

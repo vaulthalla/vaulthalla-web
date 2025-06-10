@@ -16,6 +16,7 @@ interface AuthState {
   error: string | null
 
   login: (email: string, password: string) => Promise<void>
+  registerUser: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
   fetchUser: () => Promise<void>
 }
@@ -44,6 +45,25 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           set({ loading: false })
         }
+      },
+
+      registerUser: (name: string, email: string, password: string) => {
+        set({ loading: true, error: null })
+        return new Promise<void>(async (resolve, reject) => {
+          try {
+            const sendCommand = useWebSocketStore.getState().sendCommand
+            const response = await sendCommand('auth.register', { name, email, password })
+
+            set({ token: response.token, user: response.user })
+            resolve()
+          } catch (err) {
+            const errorMessage = getErrorMessage(err) || 'Registration failed'
+            set({ error: errorMessage })
+            reject(errorMessage)
+          } finally {
+            set({ loading: false })
+          }
+        })
       },
 
       logout: () => {

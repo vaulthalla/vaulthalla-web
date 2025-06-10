@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
 import { useAuthStore } from './authStore'
 import { WebSocketCommandMap } from '@/util/webSocketCommands'
+import { getWebsocketUrl } from '@/util/getUrl'
 
 interface WebSocketMessage<C extends keyof WebSocketCommandMap> {
   command: C
@@ -28,87 +29,109 @@ interface WebSocketStore {
   ) => Promise<WebSocketCommandMap[C]['response']>
 }
 
-export const useWebSocketStore = create<WebSocketStore>((set, get) => ({
-  socket: null,
-  connected: false,
-  pending: {},
+export const useWebSocketStore = create<WebSocketStore>((set, get) => {
+  let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
+  let shouldReconnect = true
 
-  connect: () => {
-    const { socket, connected } = get()
-    if (connected || socket) return
+  return {
+    socket: null,
+    connected: false,
+    pending: {},
 
-    const ws = new WebSocket(`ws://${window.location.hostname}:9001`)
+    connect: () => {
+      const { socket, connected } = get()
+      if (connected || socket) return
 
-    ws.onopen = () => {
-      set({ connected: true })
-      console.log('[WS] Connected')
-    }
+      const ws = new WebSocket(getWebsocketUrl())
 
-    ws.onclose = () => {
-      set({ connected: false, socket: null })
-      console.warn('[WS] Disconnected')
-      // TODO: retry logic here if needed
-    }
-
-    ws.onmessage = event => {
-      try {
-        const message = JSON.parse(event.data)
-        const handler = get().pending[message.requestId]
-        if (handler) {
-          handler(message.data)
-          const newPending = { ...get().pending }
-          delete newPending[message.requestId]
-          set({ pending: newPending })
-        }
-      } catch (err) {
-        console.error('[WS] Failed to parse message', err)
+      ws.onopen = () => {
+        set({ connected: true })
+        console.log('[WS] Connected')
       }
-    }
 
-    set({ socket: ws })
-  },
+      ws.onclose = () => {
+        set({ connected: false, socket: null })
+        console.warn('[WS] Disconnected')
 
-  disconnect: () => {
-    const socket = get().socket
-    if (socket) socket.close()
-    set({ socket: null, connected: false, pending: {} })
-  },
+        if (shouldReconnect) {
+          const retryDelay = 2000 // ms, can implement exponential backoff
+          console.log(`[WS] Attempting to reconnect in ${retryDelay / 1000}s...`)
+          reconnectTimeout = setTimeout(() => {
+            get().connect()
+          }, retryDelay)
+        }
+      }
 
-  sendCommand: async (command, payload) => {
-    const { socket, connected, pending } = get()
-    const token = useAuthStore.getState().token
+      ws.onmessage = event => {
+        try {
+          const message = JSON.parse(event.data)
+          const handler = get().pending[message.requestId]
+          if (handler) {
+            handler(message.data)
+            const newPending = { ...get().pending }
+            delete newPending[message.requestId]
+            set({ pending: newPending })
+          }
+        } catch (err) {
+          console.error('[WS] Failed to parse message', err)
+        }
+      }
 
-    if (!connected || !socket) throw new Error('WebSocket not connected')
-    if (!token) throw new Error('No auth token')
+      set({ socket: ws })
+    },
 
-    const requestId = uuidv4()
+    disconnect: () => {
+      const socket = get().socket
+      shouldReconnect = false
+      if (reconnectTimeout) clearTimeout(reconnectTimeout)
+      if (socket) socket.close()
+      set({ socket: null, connected: false, pending: {} })
+    },
 
-    const message: WebSocketMessage<typeof command> = {
-      command,
-      payload,
-      requestId,
-      token,
-    }
+    sendCommand: async (command, payload) => {
+      const { socket, connected, pending, connect } = get()
+      const token = useAuthStore.getState().token
 
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
-        reject(new Error('Request timed out'))
-        const updated = { ...get().pending }
-        delete updated[requestId]
-        set({ pending: updated })
-      }, 10000)
+      if (!connected || !socket) {
+        console.warn('[WS] Not connected, attempting to reconnect...')
+        connect()
+      }
 
-      set({
-        pending: {
-          ...pending,
-          [requestId]: data => {
-            clearTimeout(timeout)
-            resolve(data)
+      if (!token && command !== 'auth.register') throw new Error('No auth token')
+
+      const requestId = uuidv4()
+
+      const message: WebSocketMessage<typeof command> = {
+        command,
+        payload,
+        requestId,
+        token: token || '',
+      }
+
+      console.log('sending', message)
+
+      if (!socket || !connected) throw new Error('WebSocket is not connected')
+
+      return new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Request timed out'))
+          const updated = { ...get().pending }
+          delete updated[requestId]
+          set({ pending: updated })
+        }, 10000)
+
+        set({
+          pending: {
+            ...pending,
+            [requestId]: data => {
+              clearTimeout(timeout)
+              resolve(data)
+            },
           },
-        },
-      })
+        })
 
-      socket.send(JSON.stringify(message))
-    })
-  },
-}))
+        socket.send(JSON.stringify(message))
+      })
+    },
+  }
+})
