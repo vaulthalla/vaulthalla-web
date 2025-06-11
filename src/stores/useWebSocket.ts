@@ -1,8 +1,8 @@
-import { create } from 'zustand'
-import { v4 as uuidv4 } from 'uuid'
-import { useAuthStore } from './authStore'
-import { WebSocketCommandMap } from '@/util/webSocketCommands'
-import { getWebsocketUrl } from '@/util/getUrl'
+import {create} from 'zustand'
+import {v4 as uuidv4} from 'uuid'
+import {useAuthStore} from './authStore'
+import {WebSocketCommandMap} from '@/util/webSocketCommands'
+import {getWebsocketUrl} from '@/util/getUrl'
 
 interface WebSocketMessage<C extends keyof WebSocketCommandMap> {
   command: C
@@ -39,18 +39,18 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     pending: {},
 
     connect: () => {
-      const { socket, connected } = get()
+      const {socket, connected} = get()
       if (connected || socket) return
 
       const ws = new WebSocket(getWebsocketUrl())
 
       ws.onopen = () => {
-        set({ connected: true })
+        set({connected: true})
         console.log('[WS] Connected')
       }
 
       ws.onclose = () => {
-        set({ connected: false, socket: null })
+        set({connected: false, socket: null})
         console.warn('[WS] Disconnected')
 
         if (shouldReconnect) {
@@ -68,16 +68,16 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
           const handler = get().pending[message.requestId]
           if (handler) {
             handler(message.data)
-            const newPending = { ...get().pending }
+            const newPending = {...get().pending}
             delete newPending[message.requestId]
-            set({ pending: newPending })
+            set({pending: newPending})
           }
         } catch (err) {
           console.error('[WS] Failed to parse message', err)
         }
       }
 
-      set({ socket: ws })
+      set({socket: ws})
     },
 
     disconnect: () => {
@@ -85,11 +85,11 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
       shouldReconnect = false
       if (reconnectTimeout) clearTimeout(reconnectTimeout)
       if (socket) socket.close()
-      set({ socket: null, connected: false, pending: {} })
+      set({socket: null, connected: false, pending: {}})
     },
 
     sendCommand: async (command, payload) => {
-      const { socket, connected, pending, connect } = get()
+      const {socket, connected, pending, connect} = get()
       const token = useAuthStore.getState().token
 
       if (!connected || !socket) {
@@ -101,12 +101,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
 
       const requestId = uuidv4()
 
-      const message: WebSocketMessage<typeof command> = {
-        command,
-        payload,
-        requestId,
-        token: token || '',
-      }
+      const message: WebSocketMessage<typeof command> = {command, payload, requestId, token: token || ''}
 
       console.log('sending', message)
 
@@ -115,9 +110,9 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
       return new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           reject(new Error('Request timed out'))
-          const updated = { ...get().pending }
+          const updated = {...get().pending}
           delete updated[requestId]
-          set({ pending: updated })
+          set({pending: updated})
         }, 10000)
 
         set({

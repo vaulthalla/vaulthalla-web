@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useWebSocketStore } from '@/stores/useWebSocket'
+import {useEffect} from 'react'
+import {useWebSocketStore} from '@/stores/useWebSocket'
 
 export const useWebSocketLifecycle = () => {
   const connect = useWebSocketStore(state => state.connect)
@@ -9,9 +9,6 @@ export const useWebSocketLifecycle = () => {
 
   useEffect(() => {
     connect()
-
-    return () => {
-      disconnect()
-    }
+    return () => disconnect()
   }, [connect, disconnect])
 }

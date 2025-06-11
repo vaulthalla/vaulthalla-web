@@ -1,32 +1,25 @@
 export interface WebSocketCommandMap {
   'auth.login': {
-    payload: { email: string; password: string }
-    response: { token: string; user: { id: string; name: string; email: string } }
+    payload: {email: string; password: string}
+    response: {token: string; user: {id: string; name: string; email: string}}
   }
 
   'auth.register': {
-    payload: { name: string; email: string; password: string }
-    response: { token: string; user: { id: string; name: string; email: string } }
+    payload: {name: string; email: string; password: string}
+    response: {token: string; user: {id: string; name: string; email: string}}
   }
 
-  'auth.logout': {
+  'auth.isAuthenticated': {
     payload: null
-    response: { success: boolean }
+    response: {isAuthenticated: boolean; user?: {id: string; name: string; email: string}}
   }
 
-  'auth.me': {
-    payload: null
-    response: { user: { id: string; name: string; email: string } }
-  }
+  'auth.logout': {payload: null; response: {success: boolean}}
 
-  'fs.listDir': {
-    payload: { path: string }
-    response: { files: Array<{ name: string; size: number; isDir: boolean }> }
-  }
+  'auth.me': {payload: null; response: {user: {id: string; name: string; email: string}}}
+
+  'fs.listDir': {payload: {path: string}; response: {files: Array<{name: string; size: number; isDir: boolean}>}}
 
   // Add all other commands here ⬇️
-  'storage.mount': {
-    payload: { bucket: string }
-    response: { success: boolean }
-  }
+  'storage.mount': {payload: {bucket: string}; response: {success: boolean}}
 }
