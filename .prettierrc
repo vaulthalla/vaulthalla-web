@@ -7,7 +7,7 @@
   "arrowParens": "avoid",
   "objectWrap": "collapse",
   "bracketSameLine": true,
-  "bracketSpacing": false,
+  "bracketSpacing": true,
   "experimentalTernaries": true,
   "experimentalOperatorPosition": "start",
   "proseWrap": "never",

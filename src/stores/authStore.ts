@@ -1,7 +1,7 @@
-import {create} from 'zustand'
-import {persist} from 'zustand/middleware'
-import {getErrorMessage} from '@/util/handleErrors'
-import {useWebSocketStore} from '@/stores/useWebSocket'
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { getErrorMessage } from '@/util/handleErrors'
+import { useWebSocketStore } from '@/stores/useWebSocket'
 
 interface User {
   id: string
@@ -42,97 +42,97 @@ export const useAuthStore = create<AuthState>()(
       },
 
       login: async (email, password) => {
-        set({loading: true, error: null})
+        set({ loading: true, error: null })
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
-          const response = await sendCommand('auth.login', {email, password})
+          const response = await sendCommand('auth.login', { email, password })
 
-          set({token: response.token, user: response.user})
+          set({ token: response.token, user: response.user })
           get().setTokenCookie(response.token)
         } catch (err) {
-          set({error: getErrorMessage(err) || 'Login failed'})
+          set({ error: getErrorMessage(err) || 'Login failed' })
           throw err
         } finally {
-          set({loading: false})
+          set({ loading: false })
         }
       },
 
       registerUser: (name, email, password) => {
-        set({loading: true, error: null})
+        set({ loading: true, error: null })
         return new Promise<void>(async (resolve, reject) => {
           try {
             const sendCommand = useWebSocketStore.getState().sendCommand
-            const response = await sendCommand('auth.register', {name, email, password})
+            const response = await sendCommand('auth.register', { name, email, password })
 
-            set({token: response.token, user: response.user})
+            set({ token: response.token, user: response.user })
             get().setTokenCookie(response.token)
             resolve()
           } catch (err) {
             const errorMessage = getErrorMessage(err) || 'Registration failed'
-            set({error: errorMessage})
+            set({ error: errorMessage })
             reject(errorMessage)
           } finally {
-            set({loading: false})
+            set({ loading: false })
           }
         })
       },
 
       isUserAuthenticated: () => {
-        set({loading: true, error: null})
+        set({ loading: true, error: null })
         return new Promise<boolean>(async resolve => {
           try {
             const sendCommand = useWebSocketStore.getState().sendCommand
             const response = await sendCommand('auth.isAuthenticated', null)
 
-            set({user: response.user})
+            set({ user: response.user })
             resolve(true)
             return response.isAuthenticated
           } catch (err) {
             const errorMessage = getErrorMessage(err) || 'Authentication check failed'
-            set({error: errorMessage, user: null})
+            set({ error: errorMessage, user: null })
             resolve(false)
           } finally {
-            set({loading: false})
+            set({ loading: false })
           }
         })
       },
 
       logout: () => {
-        set({token: null, user: null})
+        set({ token: null, user: null })
         get().setTokenCookie(null)
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
           sendCommand('auth.logout', null)
         } catch (err) {
-          set({error: getErrorMessage(err) || 'Logout failed'})
+          set({ error: getErrorMessage(err) || 'Logout failed' })
         }
       },
 
       fetchUser: async () => {
         const token = get().token
         if (!token) {
-          set({user: null})
+          set({ user: null })
           return
         }
 
-        set({loading: true, error: null})
+        set({ loading: true, error: null })
 
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.me', null)
 
-          set({user: response.user})
+          set({ user: response.user })
         } catch (err) {
-          set({token: null, user: null, error: getErrorMessage(err)})
+          set({ token: null, user: null, error: getErrorMessage(err) })
           get().setTokenCookie(null)
         } finally {
-          set({loading: false})
+          set({ loading: false })
         }
       },
     }),
     {
       name: 'auth-store',
-      partialize: state => ({token: state.token}),
+      partialize: state => ({ token: state.token }),
       onRehydrateStorage: () => state => {
         if (state?.token) {
           state.fetchUser()

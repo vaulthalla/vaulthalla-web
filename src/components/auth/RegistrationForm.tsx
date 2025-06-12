@@ -1,10 +1,10 @@
 'use client'
 
-import {useRouter} from 'next/navigation'
-import {useForm} from 'react-hook-form'
-import {useAuthStore} from '@/stores/authStore'
-import {getErrorMessage} from '@/util/handleErrors'
-import {useState} from 'react'
+import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { useAuthStore } from '@/stores/authStore'
+import { getErrorMessage } from '@/util/handleErrors'
+import { useState } from 'react'
 
 interface RegistrationFormValues {
   email: string
@@ -14,13 +14,13 @@ interface RegistrationFormValues {
 
 const RegistrationForm = () => {
   const router = useRouter()
-  const {login, registerUser} = useAuthStore() // assuming `register` is a WS command, but we'll re-use login after registering
+  const { login, registerUser } = useAuthStore() // assuming `register` is a WS command, but we'll re-use login after registering
   const [error, setError] = useState('')
 
   const {
     register,
     handleSubmit,
-    formState: {errors, isSubmitting},
+    formState: { errors, isSubmitting },
   } = useForm<RegistrationFormValues>()
 
   const onSubmit = async (data: RegistrationFormValues) => {
@@ -42,7 +42,7 @@ const RegistrationForm = () => {
       <input
         type="text"
         placeholder="Enter display name"
-        {...register('displayName', {required: 'Display name is required'})}
+        {...register('displayName', { required: 'Display name is required' })}
         className="w-full rounded border px-3 py-2 dark:bg-gray-700"
       />
       {errors.displayName && <p className="text-sm text-red-500">{errors.displayName.message}</p>}
@@ -50,7 +50,7 @@ const RegistrationForm = () => {
       <input
         type="email"
         placeholder="Enter your email"
-        {...register('email', {required: 'Email is required'})}
+        {...register('email', { required: 'Email is required' })}
         className="w-full rounded border px-3 py-2 dark:bg-gray-700"
       />
       {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
@@ -60,7 +60,7 @@ const RegistrationForm = () => {
         placeholder="Enter your password"
         {...register('password', {
           required: 'Password is required',
-          minLength: {value: 6, message: 'Password must be at least 6 characters'},
+          minLength: { value: 6, message: 'Password must be at least 6 characters' },
         })}
         className="w-full rounded border px-3 py-2 dark:bg-gray-700"
       />
