@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/public": ["./public"],
+      "@/public/*": ["./public/**/*"],
+      "@/icons/*": ["./public/icons/*"],
       "@/*": ["./src/*"],
     }
   },

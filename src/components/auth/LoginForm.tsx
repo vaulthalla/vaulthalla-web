@@ -27,7 +27,7 @@ const LoginForm = () => {
     try {
       await login(data.email, data.password)
       if (useAuthStore.getState().token) {
-        router.push('/')
+        router.push('/dashboard')
       } else {
         setError('Login failed')
       }

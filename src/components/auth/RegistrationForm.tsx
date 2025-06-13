@@ -27,7 +27,7 @@ const RegistrationForm = () => {
     setError('')
     try {
       await registerUser(data.displayName, data.email, data.password)
-      router.push('/')
+      router.push('/dashboard')
     } catch (err) {
       setError(getErrorMessage(err) || 'Registration failed')
     }
