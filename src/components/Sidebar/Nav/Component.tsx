@@ -18,22 +18,16 @@ const Navbar = () => {
       label: 'Vaults',
       href: '/vaults',
       subItems: [
+        { label: 'Local Disk', href: '/vaults/local', subItems: [{ label: 'Volumes', href: '/vaults/local/volumes' }] },
         {
-          label: 'Mounts',
-          href: '/vaults/mounts',
+          label: 'S3',
+          href: '/vaults/s3',
           subItems: [
-            { label: 'Local Disk', href: '/vaults/mounts/local' },
-            {
-              label: 'S3 Compatible',
-              href: '/vaults/mounts/s3',
-              subItems: [
-                { label: 'Buckets', href: '/vaults/mounts/s3/buckets' },
-                { label: 'API Keys', href: '/vaults/mounts/s3/api-keys' },
-              ],
-            },
+            { label: 'Buckets', href: '/vaults/s3/buckets' },
+            { label: 'Volumes', href: '/vaults/s3/volumes' },
+            { label: 'API Keys', href: '/vaults/s3/api-keys' },
           ],
         },
-        { label: 'Volumes', href: '/vaults/volumes' },
       ],
     },
     { label: 'Settings', href: '/settings' },
@@ -47,13 +41,15 @@ const Navbar = () => {
     const isExactActive = pathname === item.href
 
     return (
-      <div key={item.href} className="flex flex-col space-y-2">
+      <div
+        key={item.href}
+        className={`flex flex-col ${isActive ? '' : 'space-y-2'} ${isExactActive ? 'bg-cyan-700/50' : ''}`}>
         <Link
           href={item.href}
           className={clsx(
             'transition-colors hover:text-white',
-            'rounded-md px-4 py-2',
-            depth === 0 ? 'text-cyan-100' : 'text-sm text-cyan-200',
+            'px-4 py-2',
+            depth === 0 ? 'rounded-t-2xl text-cyan-100' : 'text-sm text-cyan-200',
             isExactActive ? 'bg-cyan-700/50 font-semibold text-white shadow-inner'
             : isActive ? 'bg-cyan-800/30 font-semibold text-white shadow-inner'
             : 'bg-transparent',
@@ -62,7 +58,7 @@ const Navbar = () => {
         </Link>
 
         {item.subItems && isActive && (
-          <div className={clsx('flex flex-col space-y-2', `ml-${depth * 4} pl-2`)}>
+          <div className={clsx('flex flex-col space-y-2', `ml-${depth * 4} pl-2`, isActive ? 'bg-cyan-800/30' : '')}>
             {item.subItems.map((subItem: navItem) => renderNavItem(subItem, depth + 1))}
           </div>
         )}
