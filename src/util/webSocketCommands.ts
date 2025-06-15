@@ -3,22 +3,27 @@ export interface WebSocketCommandMap {
 
   'auth.login': {
     payload: { email: string; password: string }
-    response: { token: string; user: { id: string; name: string; email: string } }
+    response: { token: string; user: { id: string; name: string; email: string; lastLogin: string } }
   }
 
   'auth.register': {
     payload: { name: string; email: string; password: string }
-    response: { token: string; user: { id: string; name: string; email: string } }
+    response: { token: string; user: { id: string; name: string; email: string; lastLogin: string } }
   }
 
   'auth.isAuthenticated': {
     payload: null
-    response: { isAuthenticated: boolean; user?: { id: string; name: string; email: string } }
+    response: { isAuthenticated: boolean; user?: { id: string; name: string; email: string; lastLogin: string } }
+  }
+
+  'auth.refresh': {
+    payload: {}
+    response: { token: string; user: { id: string; name: string; email: string; lastLogin: string } }
   }
 
   'auth.logout': { payload: null; response: { success: boolean } }
 
-  'auth.me': { payload: null; response: { user: { id: string; name: string; email: string } } }
+  'auth.me': { payload: null; response: { user: { id: string; name: string; email: string; lastLogin: string } } }
 
   // Vault commands
 

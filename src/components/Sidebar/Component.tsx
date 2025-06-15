@@ -5,10 +5,10 @@ import Logo from '../../../public/Vaulthalla-logo.png'
 import { useAuthStore } from '@/stores/authStore'
 import Navbar from '@/components/Sidebar/Nav/Component'
 
-const user = useAuthStore.getState().user
-
 export const Sidebar = () => {
   const Footer = () => <div className="text-xs text-cyan-400 opacity-70">v0.1.0 • Vaulthalla</div>
+
+  const { user } = useAuthStore()
 
   return (
     <aside className="h-full w-72 border-r border-white/20 bg-gradient-to-b from-white/10 to-black/20 shadow-[0_0_60px_20px_rgba(100,255,255,0.1)] backdrop-blur-xl backdrop-saturate-150">
@@ -22,7 +22,7 @@ export const Sidebar = () => {
           className="transform cursor-pointer rounded-lg bg-red-700 py-2 font-semibold hover:scale-105 hover:transition-transform"
           onClick={() => {
             useAuthStore.getState().logout()
-            window.location.href = '/login' // Redirect to login page after logout
+            window.location.href = '/login'
           }}>
           Logout
         </button>

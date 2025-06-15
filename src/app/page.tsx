@@ -1,12 +1,12 @@
-import { cookies } from 'next/headers'
+'use client'
+
 import { redirect } from 'next/navigation'
+import { useAuthStore } from '@/stores/authStore'
 
-const Home = async () => {
-  const cookieStore = await cookies()
-  const token = cookieStore.get('token')
+const Home = () => {
+  const { user, token } = useAuthStore()
 
-  if (!token) redirect(`/login`)
-  else redirect(`/dashboard`)
+  return token && user?.name ? redirect('/dashboard') : redirect('/login')
 }
 
 export default Home

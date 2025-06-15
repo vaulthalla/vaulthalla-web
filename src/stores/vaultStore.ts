@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 import { JSONParsed, WSCommandPayload, WSCommandResponse } from '@/util/webSocketCommands'
+import { toVaultArray } from '@/models/vaults'
 
 type Vault = JSONParsed<WSCommandResponse<'storage.vault.list'>['data']>[number]
 
@@ -18,8 +19,8 @@ export const useVaultStore = create<VaultStore>(set => ({
   async fetchVaults() {
     const sendCommand = useWebSocketStore.getState().sendCommand
     const response = await sendCommand('storage.vault.list', {})
-    const data = JSON.parse(response.data)
-    set({ vaults: data })
+    console.log(response)
+    set({ vaults: toVaultArray(response) })
   },
 
   async addVault(vaultPayload) {

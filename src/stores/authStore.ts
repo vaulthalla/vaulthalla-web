@@ -7,6 +7,7 @@ interface User {
   id: string
   name: string
   email: string
+  lastLogin: string | null
 }
 
 interface AuthState {
@@ -20,6 +21,7 @@ interface AuthState {
   registerUser: (name: string, email: string, password: string) => Promise<void>
   isUserAuthenticated: () => Promise<boolean>
   logout: () => void
+  refreshToken: () => Promise<void>
   fetchUser: () => Promise<void>
 }
 
@@ -46,6 +48,8 @@ export const useAuthStore = create<AuthState>()(
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.login', { email, password })
+
+          console.log(response)
 
           set({ token: response.token, user: response.user })
           get().setTokenCookie(response.token)
@@ -84,6 +88,8 @@ export const useAuthStore = create<AuthState>()(
             const sendCommand = useWebSocketStore.getState().sendCommand
             const response = await sendCommand('auth.isAuthenticated', null)
 
+            console.log(response)
+
             set({ user: response.user })
             resolve(true)
             return response.isAuthenticated
@@ -102,9 +108,26 @@ export const useAuthStore = create<AuthState>()(
         get().setTokenCookie(null)
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
+          const socket = useWebSocketStore.getState().socket
           sendCommand('auth.logout', null)
+          setTimeout(() => socket?.close(), 100) // Close socket after logout
         } catch (err) {
           set({ error: getErrorMessage(err) || 'Logout failed' })
+        }
+      },
+
+      refreshToken: async () => {
+        try {
+          const sendCommand = useWebSocketStore.getState().sendCommand
+          const response = await sendCommand('auth.refresh', {}) // relies on HttpOnly cookie
+
+          set({ token: response.token, user: response.user })
+          get().setTokenCookie(response.token) // Optional if you're also setting via WebSocketSession
+          console.log('[Auth] Token refreshed')
+        } catch (err) {
+          console.error('[Auth] Token refresh failed', err)
+          set({ token: null, user: null, error: getErrorMessage(err) })
+          get().setTokenCookie(null)
         }
       },
 
@@ -132,12 +155,24 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-store',
-      partialize: state => ({ token: state.token }),
-      onRehydrateStorage: () => state => {
-        if (state?.token) {
-          state.fetchUser()
-          state.setTokenCookie(state.token) // re-sync token to cookie after hydration
+      onRehydrateStorage: () => async () => {
+        console.log('[AuthStore] Rehydrated')
+
+        const ws = useWebSocketStore.getState()
+
+        const trySilentRefresh = async () => {
+          console.log('[AuthStore] Waiting for WebSocket connection...')
+          await ws.waitForConnection()
+          console.log('[AuthStore] WebSocket connected. Attempting silent refresh...')
+          await useAuthStore.getState().refreshToken()
+          console.log('[AuthStore] Silent refresh complete')
         }
+
+        // Fire and forget (non-blocking)
+        trySilentRefresh().catch(err => {
+          console.error('[AuthStore] Silent refresh failed:', err)
+          useAuthStore.getState().logout()
+        })
       },
     },
   ),
