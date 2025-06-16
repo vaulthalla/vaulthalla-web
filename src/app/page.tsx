@@ -1,10 +1,9 @@
-'use client'
-
 import { redirect } from 'next/navigation'
 import { useAuthStore } from '@/stores/authStore'
 
 const Home = () => {
-  const { user, token } = useAuthStore()
+  const user = useAuthStore.getState().user
+  const token = useAuthStore.getState().token
 
   return token && user?.name ? redirect('/dashboard') : redirect('/login')
 }

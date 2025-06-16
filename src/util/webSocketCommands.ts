@@ -1,3 +1,5 @@
+import { Vault } from '@/models/vaults'
+
 export interface WebSocketCommandMap {
   // Auth
 
@@ -38,7 +40,7 @@ export interface WebSocketCommandMap {
 
   'storage.vault.remove': { payload: { id: number }; response: {} }
 
-  'storage.vault.get': { payload: { id: number }; response: { data: any /* Vault JSON object */ } }
+  'storage.vault.get': { payload: { id: number }; response: { vault: Vault } }
 
   // Volume commands
 

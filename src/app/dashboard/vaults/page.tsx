@@ -3,6 +3,7 @@
 import { useVaultStore } from '@/stores/vaultStore'
 import VaultCard from '@/components/vault/VaultCard'
 import { useEffect } from 'react'
+import Link from 'next/link'
 
 const VaultsPage = () => {
   const { vaults } = useVaultStore()
@@ -22,7 +23,11 @@ const VaultsPage = () => {
         <div>
           <ul>
             {vaults.map(vault => (
-              <VaultCard {...vault} key={vault.id} />
+              <Link href={`/dashboard/vaults/${vault.id}`} key={vault.id}>
+                <li className="mb-4">
+                  <VaultCard {...vault} key={vault.id} />
+                </li>
+              </Link>
             ))}
           </ul>
         </div>

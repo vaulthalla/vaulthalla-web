@@ -16,26 +16,8 @@ const Navbar = () => {
   const navItems = [
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Files', href: '/dashboard/files' },
-    {
-      label: 'Vaults',
-      href: '/dashboard/vaults',
-      subItems: [
-        {
-          label: 'Local Disk',
-          href: '/dashboard/vaults/local',
-          subItems: [{ label: 'Volumes', href: '/dashboard/vaults/local/volumes' }],
-        },
-        {
-          label: 'S3',
-          href: '/dashboard/vaults/s3',
-          subItems: [
-            { label: 'Buckets', href: '/dashboard/vaults/s3/buckets' },
-            { label: 'Volumes', href: '/dashboard/vaults/s3/volumes' },
-            { label: 'API Keys', href: '/dashboard/vaults/s3/api-keys' },
-          ],
-        },
-      ],
-    },
+    { label: 'Vaults', href: '/dashboard/vaults' },
+    { label: 'API Keys', href: '/dashboard/api-keys' },
     {
       label: 'Users',
       href: '/dashboard/users',
