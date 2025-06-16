@@ -155,24 +155,27 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-store',
-      onRehydrateStorage: () => async () => {
+      onRehydrateStorage: () => () => {
         console.log('[AuthStore] Rehydrated')
 
-        const ws = useWebSocketStore.getState()
-
-        const trySilentRefresh = async () => {
-          console.log('[AuthStore] Waiting for WebSocket connection...')
-          await ws.waitForConnection()
-          console.log('[AuthStore] WebSocket connected. Attempting silent refresh...')
-          await useAuthStore.getState().refreshToken()
-          console.log('[AuthStore] Silent refresh complete')
-        }
-
         // Fire and forget (non-blocking)
-        trySilentRefresh().catch(err => {
-          console.error('[AuthStore] Silent refresh failed:', err)
-          useAuthStore.getState().logout()
-        })
+        ;(async () => {
+          try {
+            console.log('[AuthStore] Waiting for WebSocket connection...')
+
+            // 💡 MOVE this INSIDE the async block to avoid premature access
+            const ws = (await import('@/stores/useWebSocket')).useWebSocketStore
+
+            await ws.getState().waitForConnection()
+            console.log('[AuthStore] WebSocket connected. Attempting silent refresh...')
+
+            await useAuthStore.getState().refreshToken()
+            console.log('[AuthStore] Silent refresh complete')
+          } catch (err) {
+            console.error('[AuthStore] Silent refresh failed:', err)
+            useAuthStore.getState().logout()
+          }
+        })()
       },
     },
   ),

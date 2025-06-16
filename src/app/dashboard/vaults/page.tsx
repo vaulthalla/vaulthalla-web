@@ -5,17 +5,19 @@ import VaultCard from '@/components/vault/VaultCard'
 import { useEffect } from 'react'
 
 const VaultsPage = () => {
-  const { vaults, fetchVaults } = useVaultStore()
+  const { vaults } = useVaultStore()
 
   useEffect(() => {
-    const fetchData = async () => await fetchVaults()
-    fetchData()
-  })
+    // Fetch vaults when the component mounts
+    useVaultStore.getState().fetchVaults()
+  }, [])
 
   return (
     <div>
-      <h1>Vaults</h1>
-      <p>Manage your vaults here.</p>
+      <div className="mb-4 text-center">
+        <h1 className="text-4xl font-semibold">Vaults</h1>
+        <p>Manage your vaults here.</p>
+      </div>
       {vaults && vaults.length > 0 && (
         <div>
           <ul>

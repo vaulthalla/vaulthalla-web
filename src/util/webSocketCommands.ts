@@ -27,7 +27,7 @@ export interface WebSocketCommandMap {
 
   // Vault commands
 
-  'storage.vault.list': { payload: {}; response: { data: string /* JSON stringified Vault[] */ } }
+  'storage.vault.list': { payload: {}; response: { vaults: string } }
 
   'storage.vault.add': {
     payload:
