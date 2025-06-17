@@ -1,5 +1,6 @@
 import { Vault } from '@/models/vaults'
 import { Volume } from '@/models/volumes'
+import { APIKey } from '@/models/apiKey'
 
 export interface WebSocketCommandMap {
   // Auth
@@ -62,20 +63,17 @@ export interface WebSocketCommandMap {
 
   // API Key commands
 
-  'storage.apiKey.list': { payload: { userId: number }; response: { data: string /* JSON stringified APIKey[] */ } }
+  'storage.apiKey.list': { payload: {}; response: { keys: string } }
 
-  'storage.apiKey.list.user': {
-    payload: { userId: number }
-    response: { data: string /* JSON stringified APIKey[] */ }
-  }
+  'storage.apiKey.list.user': { payload: {}; response: { keys: string /* JSON string of API keys */ } }
 
   'storage.apiKey.add': {
     payload: {
-      userID: number
+      user_id: number
       name: string
       type: string // right now only "s3"
-      accessKey: string
-      secretKey: string
+      access_key: string
+      secret_access_key: string
       region: string
       endpoint: string
     }
@@ -84,7 +82,7 @@ export interface WebSocketCommandMap {
 
   'storage.apiKey.remove': { payload: { keyId: number }; response: {} }
 
-  'storage.apiKey.get': { payload: { keyId: number }; response: { data: any /* APIKey JSON object */ } }
+  'storage.apiKey.get': { payload: { keyId: number }; response: { key: APIKey } }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']

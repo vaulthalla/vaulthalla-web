@@ -40,7 +40,7 @@ export const useVolumeStore = create<VolumeStore>()(
       async addVolume(payload) {
         const sendCommand = useWebSocketStore.getState().sendCommand
         await sendCommand('storage.volume.add', payload)
-        await get().fetchVolumes({ vaultId: payload.vaultID })
+        await get().fetchVolumes({ vaultId: payload.vault_id })
       },
 
       async removeVolume(payload) {
