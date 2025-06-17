@@ -23,7 +23,7 @@ export default function VaultPage({ slug }: { slug: string }) {
     const loadVault = async () => {
       try {
         const ws = useWebSocketStore.getState()
-        await ws.waitForConnection() // ✅ Ensure socket is ready before calling getVault
+        await ws.waitForConnection()
 
         const vault = await getVault({ id: vaultId })
         setVault(vault)

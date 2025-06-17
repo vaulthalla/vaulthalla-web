@@ -4,7 +4,7 @@ import { getErrorMessage } from '@/util/handleErrors'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 
 interface User {
-  id: string
+  id: number
   name: string
   email: string
   lastLogin: string | null
@@ -156,6 +156,8 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'auth-store',
       onRehydrateStorage: () => () => {
+        if (useAuthStore.getState().token) return
+
         console.log('[AuthStore] Rehydrated')
 
         // Fire and forget (non-blocking)

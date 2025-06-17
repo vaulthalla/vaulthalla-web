@@ -3,15 +3,11 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/Button'
-
-interface Volume {
-  id: number
-  vault_id: number
-  name: string
-  path_prefix: string
-  quota_bytes?: number
-  created_at: number
-}
+import { useVolumeStore } from '@/stores/volumeStore'
+import { useWebSocketStore } from '@/stores/useWebSocket'
+import { getErrorMessage } from '@/util/handleErrors'
+import { Volume } from '@/models/volumes'
+import Link from 'next/link'
 
 interface VolumesComponentProps {
   vaultId: number
@@ -23,28 +19,30 @@ export default function VolumesComponent({ vaultId }: VolumesComponentProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const fetchVolumes = async () => {
+    let timeout: NodeJS.Timeout | null = null
+
+    const loadVolumes = async () => {
       try {
-        // Replace with actual fetch command to your WebSocket or REST API
-        const mockData: Volume[] = [
-          {
-            id: 1,
-            vault_id: vaultId,
-            name: 'Primary Volume',
-            path_prefix: '/mnt/storage/primary',
-            quota_bytes: 10737418240,
-            created_at: Date.now(),
-          },
-        ]
-        setVolumes(mockData)
-      } catch (err: any) {
-        setError(err?.message || 'Failed to load volumes')
+        const ws = useWebSocketStore.getState()
+        await ws.waitForConnection()
+
+        // If fetch is *too* fast, delay setting loading to true at all
+        timeout = setTimeout(() => setLoading(true), 50)
+
+        setVolumes(useVolumeStore.getState().getVolumes({ vaultId }))
+      } catch (err) {
+        setError(getErrorMessage(err) || 'Failed to load volumes')
       } finally {
+        if (timeout) clearTimeout(timeout)
         setLoading(false)
       }
     }
 
-    fetchVolumes()
+    loadVolumes()
+
+    return () => {
+      if (timeout) clearTimeout(timeout)
+    }
   }, [vaultId])
 
   return (
@@ -61,30 +59,31 @@ export default function VolumesComponent({ vaultId }: VolumesComponentProps) {
 
       {!loading && volumes.length === 0 && <p className="text-gray-500 italic">No volumes found for this vault.</p>}
 
-      {volumes.map(volume => (
-        <motion.div
-          key={volume.id}
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 * volume.id }}
-          className="mb-4 rounded border border-gray-700 bg-gray-800 p-4 text-sm">
-          <p>
-            <span className="font-semibold text-white">Name:</span> {volume.name}
-          </p>
-          <p>
-            <span className="font-semibold text-white">Path:</span> {volume.path_prefix}
-          </p>
-          {volume.quota_bytes && (
+      {!loading
+        && volumes.map(volume => (
+          <motion.div
+            key={volume.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.05 * volume.id }}
+            className="mb-4 rounded border border-gray-700 bg-gray-800 p-4 text-sm">
             <p>
-              <span className="font-semibold text-white">Quota:</span> {(volume.quota_bytes / 1_073_741_824).toFixed(2)}{' '}
-              GB
+              <span className="font-semibold text-white">Name:</span> {volume.name}
             </p>
-          )}
-          <p className="text-gray-400">Created: {new Date(volume.created_at).toLocaleString()}</p>
-        </motion.div>
-      ))}
+            <p>
+              <span className="font-semibold text-white">Path:</span> {volume.path_prefix}
+            </p>
+            <p>
+              <span className="font-semibold text-white">Quota:</span>{' '}
+              {volume.quota_bytes ? `${(volume.quota_bytes / 1_073_741_824).toFixed(2)} GB` : 'Unlimited'}
+            </p>
+            <p className="text-gray-400">Created: {new Date(volume.created_at).toLocaleString()}</p>
+          </motion.div>
+        ))}
 
-      <Button className="mt-4">Add New Volume</Button>
+      <Link href="/dashboard/vaults/[slug]/add-volume" as={`/dashboard/vaults/${vaultId}/add-volume`}>
+        <Button className="mt-4 cursor-pointer">Add New Volume</Button>
+      </Link>
     </motion.div>
   )
 }

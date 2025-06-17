@@ -1,31 +1,32 @@
 import { Vault } from '@/models/vaults'
+import { Volume } from '@/models/volumes'
 
 export interface WebSocketCommandMap {
   // Auth
 
   'auth.login': {
     payload: { email: string; password: string }
-    response: { token: string; user: { id: string; name: string; email: string; lastLogin: string } }
+    response: { token: string; user: { id: number; name: string; email: string; lastLogin: string } }
   }
 
   'auth.register': {
     payload: { name: string; email: string; password: string }
-    response: { token: string; user: { id: string; name: string; email: string; lastLogin: string } }
+    response: { token: string; user: { id: number; name: string; email: string; lastLogin: string } }
   }
 
   'auth.isAuthenticated': {
     payload: null
-    response: { isAuthenticated: boolean; user?: { id: string; name: string; email: string; lastLogin: string } }
+    response: { isAuthenticated: boolean; user?: { id: number; name: string; email: string; lastLogin: string } }
   }
 
   'auth.refresh': {
     payload: {}
-    response: { token: string; user: { id: string; name: string; email: string; lastLogin: string } }
+    response: { token: string; user: { id: number; name: string; email: string; lastLogin: string } }
   }
 
   'auth.logout': { payload: null; response: { success: boolean } }
 
-  'auth.me': { payload: null; response: { user: { id: string; name: string; email: string; lastLogin: string } } }
+  'auth.me': { payload: null; response: { user: { id: number; name: string; email: string; lastLogin: string } } }
 
   // Vault commands
 
@@ -44,20 +45,29 @@ export interface WebSocketCommandMap {
 
   // Volume commands
 
-  'storage.volume.list': { payload: { userId: number }; response: { data: string /* JSON stringified Volume[] */ } }
+  'storage.volume.list': { payload: { vaultId: number }; response: { volumes: string } }
+
+  'storage.volume.list.user': { payload: { userId: number }; response: { volumes: string } }
+
+  'storage.volume.list.vault': { payload: { vaultId: number }; response: { volumes: string } }
 
   'storage.volume.add': {
-    payload: { userID: number; vaultID: number; name: string; pathPrefix?: string; quotaBytes?: number }
+    payload: { user_id: number; vault_id: number; name: string; path_prefix?: string; quota_bytes?: number | null }
     response: {}
   }
 
   'storage.volume.remove': { payload: { volumeId: number }; response: {} }
 
-  'storage.volume.get': { payload: { volumeId: number }; response: { data: any /* Volume JSON object */ } }
+  'storage.volume.get': { payload: { volumeId: number }; response: { volume: Volume } }
 
   // API Key commands
 
   'storage.apiKey.list': { payload: { userId: number }; response: { data: string /* JSON stringified APIKey[] */ } }
+
+  'storage.apiKey.list.user': {
+    payload: { userId: number }
+    response: { data: string /* JSON stringified APIKey[] */ }
+  }
 
   'storage.apiKey.add': {
     payload: {
