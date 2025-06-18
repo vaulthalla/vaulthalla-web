@@ -1,7 +1,9 @@
 'use client'
 
 import { Vault } from '@/models/vaults'
-import { ShieldCheck, HardDrive, AlertTriangle } from 'lucide-react'
+import ShieldCheck from '@/fa-regular/shield-check.svg'
+import AlertTriangle from '@/fa-regular/triangle-exclamation.svg'
+import HardDrive from '@/fa-regular/hard-drive.svg'
 import * as motion from 'motion/react-client'
 
 const VaultCard = (vault: Vault) => {
@@ -15,12 +17,12 @@ const VaultCard = (vault: Vault) => {
       className="relative mb-6 rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-6 shadow-md transition-transform">
       <div className="absolute top-2.5 right-2.5">
         {vault.isActive ?
-          <ShieldCheck className="h-5 w-5 text-green-600" />
-        : <AlertTriangle className="h-5 w-5 text-red-600" />}
+          <ShieldCheck className="h-5 w-5 fill-current text-green-600" />
+        : <AlertTriangle className="h-5 w-5 fill-current text-red-600" />}
       </div>
 
       <div className="mb-3 flex items-center space-x-2">
-        <HardDrive className="h-6 w-6 text-cyan-600" />
+        <HardDrive className="h-6 w-6 fill-current text-cyan-600" />
         <h2 className="text-2xl font-bold tracking-tight text-gray-800">{vault.name}</h2>
       </div>
 

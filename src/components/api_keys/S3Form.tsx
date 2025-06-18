@@ -1,11 +1,13 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useApiKeyStore } from '@/stores/apiKeyStore'
 import { useAuthStore } from '@/stores/authStore'
 import { redirect } from 'next/navigation'
 import { S3APIKey } from '@/models/apiKey'
+import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
+import { Button } from '@/components/Button'
 
 type FormData = {
   name: string
@@ -17,6 +19,8 @@ type FormData = {
 }
 
 const S3APIKeyForm = ({ edit, id }: { edit?: boolean; id?: number }) => {
+  const [loading, setLoading] = useState(edit ?? false)
+
   const {
     register,
     handleSubmit,
@@ -31,7 +35,7 @@ const S3APIKeyForm = ({ edit, id }: { edit?: boolean; id?: number }) => {
     if (edit && id) {
       ;(async () => {
         try {
-          const key = (await keyStore.getApiKey({ keyId: id })) as S3APIKey
+          const key = (await keyStore.getApiKey({ id })) as S3APIKey
           setValue('name', key.name)
           setValue('provider', key.provider)
           setValue('access_key', key.access_key)
@@ -40,10 +44,12 @@ const S3APIKeyForm = ({ edit, id }: { edit?: boolean; id?: number }) => {
           setValue('endpoint', key.endpoint)
         } catch (err) {
           console.error('[Edit API Key] Failed to load key:', err)
+        } finally {
+          setLoading(false) // flip off loader
         }
       })()
     }
-  }, [edit, id, setValue])
+  }, [edit, id, keyStore, setValue])
 
   const onSubmit = async (data: FormData) => {
     if (!user_id) {
@@ -54,10 +60,20 @@ const S3APIKeyForm = ({ edit, id }: { edit?: boolean; id?: number }) => {
     const payload = { ...data, user_id, type: 's3' }
 
     if (edit && id) {
-      await keyStore.removeApiKey({ keyId: id })
+      await keyStore.removeApiKey({ id })
     }
 
     await keyStore.addApiKey(payload)
+    redirect('/dashboard/api-keys')
+  }
+
+  const onDelete = async () => {
+    if (!id) {
+      console.error('No API key ID provided for deletion')
+      return
+    }
+
+    await keyStore.removeApiKey({ id })
     redirect('/dashboard/api-keys')
   }
 
@@ -77,6 +93,8 @@ const S3APIKeyForm = ({ edit, id }: { edit?: boolean; id?: number }) => {
     'Storj',
     'Other',
   ]
+
+  if (loading) return <CircleNotchLoader />
 
   return (
     <div className="flex h-screen flex-col items-center justify-center space-y-2">
@@ -146,6 +164,12 @@ const S3APIKeyForm = ({ edit, id }: { edit?: boolean; id?: number }) => {
           className="transform cursor-pointer rounded-lg bg-cyan-700 py-2.5 font-semibold text-white transition-transform duration-200 hover:scale-105 hover:bg-cyan-800 disabled:cursor-not-allowed disabled:opacity-50">
           {edit ? 'Update API Key' : 'Add API Key'}
         </button>
+
+        {edit && id && (
+          <Button variant="destructive" type="button" className="mt-4" onClick={onDelete}>
+            Delete API Key
+          </Button>
+        )}
       </form>
     </div>
   )

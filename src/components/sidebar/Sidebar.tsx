@@ -3,7 +3,8 @@
 import NextImage from 'next/image'
 import Logo from '../../../public/Vaulthalla-logo.png'
 import { useAuthStore } from '@/stores/authStore'
-import Navbar from '@/components/Sidebar/Nav/Component'
+import Navbar from '@/components/sidebar/Navbar'
+import { Button } from '@/components/Button'
 
 export const Sidebar = () => {
   const Footer = () => <div className="text-xs text-cyan-400 opacity-70">v0.1.0 • Vaulthalla</div>
@@ -18,14 +19,14 @@ export const Sidebar = () => {
         <Navbar />
         <div className="flex-grow" />
         {/* Spacer */}
-        <button
-          className="transform cursor-pointer rounded-lg bg-red-700 py-2 font-semibold hover:scale-105 hover:transition-transform"
+        <Button
+          variant="destructive"
           onClick={() => {
             useAuthStore.getState().logout()
             window.location.href = '/login'
           }}>
           Logout
-        </button>
+        </Button>
         <Footer />
       </div>
     </aside>

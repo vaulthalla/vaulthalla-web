@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Sidebar } from '@/components/Sidebar/Component'
+import { Sidebar } from '@/components/sidebar/Sidebar'
 
 export const metadata: Metadata = { title: 'Vaulthalla | Dashboard', description: 'The Final Cloud' }
 

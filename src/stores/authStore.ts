@@ -2,13 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { getErrorMessage } from '@/util/handleErrors'
 import { useWebSocketStore } from '@/stores/useWebSocket'
-
-interface User {
-  id: number
-  name: string
-  email: string
-  lastLogin: string | null
-}
+import { User } from '@/models/user'
 
 interface AuthState {
   token: string | null

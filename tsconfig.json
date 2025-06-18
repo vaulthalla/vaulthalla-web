@@ -21,6 +21,9 @@
     "paths": {
       "@/public/*": ["./public/**/*"],
       "@/icons/*": ["./public/icons/*"],
+      "@/fa-regular/*": ["./public/icons/fa/regular/*"],
+      "@/fa-duotone/*": ["./public/icons/fa/duotone/*"],
+      "@/fa-brands/*": ["./public/icons/fa/brands/*"],
       "@/*": ["./src/*"],
     }
   },

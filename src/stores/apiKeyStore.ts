@@ -29,19 +29,20 @@ export const useApiKeyStore = create<ApiKeyStore>()(
         await get().fetchApiKeys({})
       },
 
-      async removeApiKey({ keyId }) {
+      async removeApiKey({ id }) {
         const sendCommand = useWebSocketStore.getState().sendCommand
-        await sendCommand('storage.apiKey.remove', { keyId })
+        await sendCommand('storage.apiKey.remove', { id })
 
-        const current = get().apiKeys.find(k => k.id === keyId)
-        if (current) {
-          await get().fetchApiKeys({})
-        }
+        const current = get().apiKeys.find(k => k.id === id)
+        if (current) await get().fetchApiKeys({})
       },
 
-      async getApiKey({ keyId }) {
+      async getApiKey({ id }) {
+        const waitForConnection = useWebSocketStore.getState().waitForConnection
+        await waitForConnection()
+
         const sendCommand = useWebSocketStore.getState().sendCommand
-        const response = await sendCommand('storage.apiKey.get', { keyId })
+        const response = await sendCommand('storage.apiKey.get', { id })
         return response.key
       },
     }),

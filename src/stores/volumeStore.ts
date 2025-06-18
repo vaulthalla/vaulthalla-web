@@ -25,9 +25,9 @@ export const useVolumeStore = create<VolumeStore>()(
         return get().volumes
       },
 
-      async fetchVolumes({ vaultId }) {
+      async fetchVolumes({ vault_id }) {
         const sendCommand = useWebSocketStore.getState().sendCommand
-        const response = await sendCommand('storage.volume.list', { vaultId })
+        const response = await sendCommand('storage.volume.list', { vault_id })
         set({ volumes: toVolumeArray(JSON.parse(response.volumes)) })
       },
 
@@ -40,16 +40,16 @@ export const useVolumeStore = create<VolumeStore>()(
       async addVolume(payload) {
         const sendCommand = useWebSocketStore.getState().sendCommand
         await sendCommand('storage.volume.add', payload)
-        await get().fetchVolumes({ vaultId: payload.vault_id })
+        await get().fetchVolumes({ vault_id: payload.vault_id })
       },
 
       async removeVolume(payload) {
         const sendCommand = useWebSocketStore.getState().sendCommand
         await sendCommand('storage.volume.remove', payload)
 
-        const removed = get().volumes.find(v => v.id === payload.volumeId)
+        const removed = get().volumes.find(v => v.id === payload.volume_id)
         if (removed) {
-          await get().fetchVolumes({ vaultId: removed.vault_id })
+          await get().fetchVolumes({ vault_id: removed.vault_id })
         }
       },
 
@@ -74,7 +74,7 @@ export const useVolumeStore = create<VolumeStore>()(
             console.log('[VolumeStore] WebSocket connected. Re-fetching volumes...')
 
             // Optional: fetch all user volumes or specific by vault
-            await useVolumeStore.getState().fetchUserVolumes({ userId: Number(useAuthStore.getState().user?.id) || 0 })
+            await useVolumeStore.getState().fetchUserVolumes({ user_id: Number(useAuthStore.getState().user?.id) || 0 })
             console.log('[VolumeStore] Volume fetch complete')
           } catch (err) {
             console.error('[VolumeStore] Rehydrate fetch failed:', err)

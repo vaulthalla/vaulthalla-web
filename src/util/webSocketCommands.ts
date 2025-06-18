@@ -1,33 +1,25 @@
 import { Vault } from '@/models/vaults'
 import { Volume } from '@/models/volumes'
 import { APIKey } from '@/models/apiKey'
+import { User } from '@/models/user'
 
 export interface WebSocketCommandMap {
   // Auth
 
-  'auth.login': {
-    payload: { email: string; password: string }
-    response: { token: string; user: { id: number; name: string; email: string; lastLogin: string } }
-  }
+  'auth.login': { payload: { email: string; password: string }; response: { token: string; user: User } }
 
   'auth.register': {
     payload: { name: string; email: string; password: string }
-    response: { token: string; user: { id: number; name: string; email: string; lastLogin: string } }
+    response: { token: string; user: User }
   }
 
-  'auth.isAuthenticated': {
-    payload: null
-    response: { isAuthenticated: boolean; user?: { id: number; name: string; email: string; lastLogin: string } }
-  }
+  'auth.isAuthenticated': { payload: null; response: { isAuthenticated: boolean; user?: User } }
 
-  'auth.refresh': {
-    payload: {}
-    response: { token: string; user: { id: number; name: string; email: string; lastLogin: string } }
-  }
+  'auth.refresh': { payload: {}; response: { token: string; user: User } }
 
   'auth.logout': { payload: null; response: { success: boolean } }
 
-  'auth.me': { payload: null; response: { user: { id: number; name: string; email: string; lastLogin: string } } }
+  'auth.me': { payload: null; response: { user: User } }
 
   // Vault commands
 
@@ -35,9 +27,9 @@ export interface WebSocketCommandMap {
 
   'storage.vault.add': {
     payload:
-      | { name: string; type: 'local'; mountPoint: string }
-      | { name: string; type: 's3'; apiKeyID: number; bucket: string }
-    response: { data: { id: number; name: string; type: string; isActive: boolean; createdAt: number } }
+      | { name: string; type: 'local'; mount_point: string }
+      | { name: string; type: 's3'; api_key_id: number; bucket: string }
+    response: { data: { id: number; name: string; type: string; is_active: boolean; created_at: number } }
   }
 
   'storage.vault.remove': { payload: { id: number }; response: {} }
@@ -46,20 +38,20 @@ export interface WebSocketCommandMap {
 
   // Volume commands
 
-  'storage.volume.list': { payload: { vaultId: number }; response: { volumes: string } }
+  'storage.volume.list': { payload: { vault_id: number }; response: { volumes: string } }
 
-  'storage.volume.list.user': { payload: { userId: number }; response: { volumes: string } }
+  'storage.volume.list.user': { payload: { user_id: number }; response: { volumes: string } }
 
-  'storage.volume.list.vault': { payload: { vaultId: number }; response: { volumes: string } }
+  'storage.volume.list.vault': { payload: { vault_id: number }; response: { volumes: string } }
 
   'storage.volume.add': {
     payload: { user_id: number; vault_id: number; name: string; path_prefix?: string; quota_bytes?: number | null }
     response: {}
   }
 
-  'storage.volume.remove': { payload: { volumeId: number }; response: {} }
+  'storage.volume.remove': { payload: { volume_id: number }; response: {} }
 
-  'storage.volume.get': { payload: { volumeId: number }; response: { volume: Volume } }
+  'storage.volume.get': { payload: { volume_id: number }; response: { volume: Volume } }
 
   // API Key commands
 
@@ -80,9 +72,9 @@ export interface WebSocketCommandMap {
     response: {}
   }
 
-  'storage.apiKey.remove': { payload: { keyId: number }; response: {} }
+  'storage.apiKey.remove': { payload: { id: number }; response: {} }
 
-  'storage.apiKey.get': { payload: { keyId: number }; response: { key: APIKey } }
+  'storage.apiKey.get': { payload: { id: number }; response: { key: APIKey } }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']
