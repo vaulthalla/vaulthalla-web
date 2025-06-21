@@ -66,12 +66,6 @@ const LoginForm = () => {
         className="bg-brand dark:bg-brand-dark w-full rounded py-2 text-white hover:opacity-90 disabled:opacity-50">
         {isSubmitting ? 'Logging in...' : 'Login'}
       </button>
-      <p className="text-sm text-gray-500">
-        Don&apos;t have an account?{' '}
-        <a href="/register" className="text-brand dark:text-brand-dark hover:underline">
-          Register here
-        </a>
-      </p>
     </form>
   )
 }

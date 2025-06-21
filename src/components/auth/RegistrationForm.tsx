@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { useAuthStore } from '@/stores/authStore'
 import { getErrorMessage } from '@/util/handleErrors'
 import { useState } from 'react'
+import { Button } from '@/components/Button'
 
 interface RegistrationFormValues {
   email: string
@@ -14,7 +15,7 @@ interface RegistrationFormValues {
 
 const RegistrationForm = () => {
   const router = useRouter()
-  const { login, registerUser } = useAuthStore() // assuming `register` is a WS command, but we'll re-use login after registering
+  const { registerUser } = useAuthStore()
   const [error, setError] = useState('')
 
   const {
@@ -27,7 +28,7 @@ const RegistrationForm = () => {
     setError('')
     try {
       await registerUser(data.displayName, data.email, data.password)
-      router.push('/dashboard')
+      router.push('/dashboard/users')
     } catch (err) {
       setError(getErrorMessage(err) || 'Registration failed')
     }
@@ -37,7 +38,7 @@ const RegistrationForm = () => {
     <form
       onSubmit={handleSubmit(onSubmit)}
       className="mx-auto mt-12 max-w-sm space-y-4 rounded bg-white p-6 shadow dark:bg-gray-800">
-      <h2 className="text-2xl font-bold">Register for Vaulthalla</h2>
+      <h2 className="text-center text-2xl font-bold">Add New User</h2>
 
       <input
         type="text"
@@ -68,12 +69,9 @@ const RegistrationForm = () => {
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="bg-brand dark:bg-brand-dark w-full rounded py-2 text-white hover:opacity-90 disabled:opacity-50">
-        {isSubmitting ? 'Registering...' : 'Register'}
-      </button>
+      <Button type="submit" variant="default" disabled={isSubmitting}>
+        {isSubmitting ? 'Registering...' : 'Add User'}
+      </Button>
     </form>
   )
 }
