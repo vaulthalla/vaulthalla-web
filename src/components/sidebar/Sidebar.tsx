@@ -1,7 +1,7 @@
 'use client'
 
 import NextImage from 'next/image'
-import Logo from '../../../public/Vaulthalla-logo.png'
+import Logo from '../../../public/vaulthalla-logo.png'
 import { useAuthStore } from '@/stores/authStore'
 import Navbar from '@/components/sidebar/Navbar'
 import { Button } from '@/components/Button'

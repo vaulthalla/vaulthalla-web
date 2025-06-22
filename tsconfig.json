@@ -19,7 +19,7 @@
       }
     ],
     "paths": {
-      "@/public/*": ["./public/**/*"],
+      "@/public/*": ["./public/*"],
       "@/icons/*": ["./public/icons/*"],
       "@/fa-regular/*": ["./public/icons/fa/regular/*"],
       "@/fa-duotone/*": ["./public/icons/fa/duotone/*"],
