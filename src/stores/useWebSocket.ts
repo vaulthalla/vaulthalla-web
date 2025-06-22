@@ -35,6 +35,7 @@ export const useWebSocketStore = create<WebSocketStore>()(
   subscribeWithSelector((set, get) => {
     let reconnectTimeout: ReturnType<typeof setTimeout> | null = null
     let shouldReconnect = true
+    let isConnecting = false
 
     return {
       socket: null,
@@ -59,16 +60,19 @@ export const useWebSocketStore = create<WebSocketStore>()(
 
       connect: () => {
         const { socket, connected } = get()
-        if (connected || socket) return
+        if (connected || socket || isConnecting) return
 
+        isConnecting = true
         const ws = new WebSocket(getWebsocketUrl())
 
         ws.onopen = () => {
           set({ connected: true })
+          isConnecting = false
           console.log('[WS] Connected')
         }
 
         ws.onclose = () => {
+          isConnecting = false
           set({ connected: false, socket: null })
           console.warn('[WS] Disconnected')
 

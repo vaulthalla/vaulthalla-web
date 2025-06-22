@@ -1,11 +1,5 @@
-import RegistrationForm from '@/components/auth/RegistrationForm'
+import UserForm from '@/components/users/UserForm'
 
-const AddUserPage = () => {
-  return (
-    <div className="">
-      <RegistrationForm />
-    </div>
-  )
-}
+const AddUserPage = () => <UserForm />
 
 export default AddUserPage

@@ -5,6 +5,7 @@ export interface IUser {
   created_at: string
   last_login: string
   is_active: boolean
+  role: string
 }
 
 export class User {
@@ -14,6 +15,7 @@ export class User {
   created_at: string
   last_login: string
   is_active: boolean
+  role: string
 
   constructor(data: IUser) {
     this.id = data.id
@@ -22,19 +24,10 @@ export class User {
     this.created_at = data.created_at
     this.last_login = data.last_login
     this.is_active = data.is_active
+    this.role = data.role
   }
 
   static fromJSON(data: IUser): User {
     return new User(data)
-  }
-}
-
-export function parseUsersArray(data: string): User[] {
-  try {
-    const parsed = JSON.parse(data) as IUser[]
-    return parsed.map(user => User.fromJSON(user))
-  } catch (error) {
-    console.error('Failed to parse users array:', error)
-    return []
   }
 }

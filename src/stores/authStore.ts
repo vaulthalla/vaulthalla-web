@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { getErrorMessage } from '@/util/handleErrors'
 import { useWebSocketStore } from '@/stores/useWebSocket'
-import { parseUsersArray, User } from '@/models/user'
+import { User } from '@/models/user'
 
 interface AuthState {
   token: string | null
@@ -12,11 +12,13 @@ interface AuthState {
 
   setTokenCookie: (token: string | null) => void
   login: (email: string, password: string) => Promise<void>
-  registerUser: (name: string, email: string, password: string) => Promise<void>
+  registerUser: (name: string, email: string, password: string, is_active: boolean, role: string) => Promise<void>
+  updateUser: (id: number, data: Partial<User>) => Promise<void>
   isUserAuthenticated: () => Promise<boolean>
   logout: () => void
   refreshToken: () => Promise<void>
   fetchUser: () => Promise<void>
+  getUser: (id: number) => Promise<User | null>
   getUsers: () => Promise<User[]>
 }
 
@@ -56,18 +58,39 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      registerUser: (name, email, password) => {
+      registerUser: (name, email, password, is_active, role) => {
         set({ loading: true, error: null })
         return new Promise<void>(async (resolve, reject) => {
           try {
             const sendCommand = useWebSocketStore.getState().sendCommand
-            const response = await sendCommand('auth.register', { name, email, password })
+            const response = await sendCommand('auth.register', { name, email, password, is_active, role })
 
             set({ token: response.token, user: response.user })
             get().setTokenCookie(response.token)
             resolve()
           } catch (err) {
             const errorMessage = getErrorMessage(err) || 'Registration failed'
+            set({ error: errorMessage })
+            reject(errorMessage)
+          } finally {
+            set({ loading: false })
+          }
+        })
+      },
+
+      updateUser: (id: number, data: Partial<User>) => {
+        set({ loading: true, error: null })
+        return new Promise<void>(async (resolve, reject) => {
+          try {
+            const sendCommand = useWebSocketStore.getState().sendCommand
+            const response = await sendCommand('auth.user.update', { id, ...data })
+
+            console.log(response.user)
+
+            set(state => ({ user: state.user?.id === id ? { ...state.user, ...response.user } : state.user }))
+            resolve()
+          } catch (err) {
+            const errorMessage = getErrorMessage(err) || 'User update failed'
             set({ error: errorMessage })
             reject(errorMessage)
           } finally {
@@ -148,13 +171,34 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      getUser: async (id: number) => {
+        set({ loading: true, error: null })
+        try {
+          await useWebSocketStore.getState().waitForConnection()
+          const sendCommand = useWebSocketStore.getState().sendCommand
+          const response = await sendCommand('auth.user.get', { id })
+
+          console.log(response.user)
+
+          return response.user
+        } catch (err) {
+          set({ error: getErrorMessage(err) || 'Failed to fetch user' })
+          throw err
+        } finally {
+          set({ loading: false })
+        }
+      },
+
       getUsers: async () => {
         set({ loading: true, error: null })
         try {
+          await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.users.list', {})
 
-          return parseUsersArray(JSON.parse(response.users))
+          console.log(response.users)
+
+          return response.users
         } catch (err) {
           set({ error: getErrorMessage(err) || 'Failed to fetch users' })
           throw err
