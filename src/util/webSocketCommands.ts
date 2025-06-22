@@ -21,6 +21,8 @@ export interface WebSocketCommandMap {
 
   'auth.me': { payload: null; response: { user: User } }
 
+  'auth.users.list': { payload: {}; response: { users: string } }
+
   // Vault commands
 
   'storage.vault.list': { payload: {}; response: { vaults: string } }

@@ -28,3 +28,13 @@ export class User {
     return new User(data)
   }
 }
+
+export function parseUsersArray(data: string): User[] {
+  try {
+    const parsed = JSON.parse(data) as IUser[]
+    return parsed.map(user => User.fromJSON(user))
+  } catch (error) {
+    console.error('Failed to parse users array:', error)
+    return []
+  }
+}

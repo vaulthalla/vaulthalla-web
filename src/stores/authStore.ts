@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { getErrorMessage } from '@/util/handleErrors'
 import { useWebSocketStore } from '@/stores/useWebSocket'
-import { User } from '@/models/user'
+import { parseUsersArray, User } from '@/models/user'
 
 interface AuthState {
   token: string | null
@@ -17,6 +17,7 @@ interface AuthState {
   logout: () => void
   refreshToken: () => Promise<void>
   fetchUser: () => Promise<void>
+  getUsers: () => Promise<User[]>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -142,6 +143,21 @@ export const useAuthStore = create<AuthState>()(
         } catch (err) {
           set({ token: null, user: null, error: getErrorMessage(err) })
           get().setTokenCookie(null)
+        } finally {
+          set({ loading: false })
+        }
+      },
+
+      getUsers: async () => {
+        set({ loading: true, error: null })
+        try {
+          const sendCommand = useWebSocketStore.getState().sendCommand
+          const response = await sendCommand('auth.users.list', {})
+
+          return parseUsersArray(JSON.parse(response.users))
+        } catch (err) {
+          set({ error: getErrorMessage(err) || 'Failed to fetch users' })
+          throw err
         } finally {
           set({ loading: false })
         }
