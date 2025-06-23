@@ -46,6 +46,7 @@ const UserForm = ({ id }: { id?: number }) => {
     setError('')
     try {
       if (isEdit && user) {
+        data.is_active = Boolean(data.is_active)
         await updateUser(user.id, data)
       } else {
         await registerUser(data.name, data.email, data.password, Boolean(data.is_active), data.role)

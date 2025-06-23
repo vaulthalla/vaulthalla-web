@@ -4,11 +4,19 @@ import { useEffect } from 'react'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 
 export const useWebSocketLifecycle = () => {
-  const connect = useWebSocketStore(state => state.connect)
-  const disconnect = useWebSocketStore(state => state.disconnect)
+  const { connect, disconnect } = useWebSocketStore()
 
   useEffect(() => {
-    connect()
+    const tryConnect = () => {
+      connect()
+    }
+
+    if (document.readyState === 'complete') {
+      tryConnect()
+    } else {
+      window.addEventListener('load', tryConnect, { once: true })
+    }
+
     return () => disconnect()
   }, [connect, disconnect])
 }

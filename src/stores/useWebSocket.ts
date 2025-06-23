@@ -60,9 +60,16 @@ export const useWebSocketStore = create<WebSocketStore>()(
 
       connect: () => {
         const { socket, connected } = get()
-        if (connected || socket || isConnecting) return
 
+        if (reconnectTimeout) {
+          clearTimeout(reconnectTimeout)
+          reconnectTimeout = null
+        }
+
+        if (connected || socket || isConnecting) return
         isConnecting = true
+
+        console.log('[WS] Attempting to connect...')
         const ws = new WebSocket(getWebsocketUrl())
 
         ws.onopen = () => {
@@ -89,28 +96,33 @@ export const useWebSocketStore = create<WebSocketStore>()(
           try {
             const message = JSON.parse(event.data)
 
-            // 🚨 Handle unauthorized error globally
             if (message.command === 'error' && message.status === 'unauthorized') {
               console.warn('[WS] Received unauthorized response — attempting token refresh')
 
               try {
                 await useAuthStore.getState().refreshToken()
                 console.log('[WS] Token refreshed — retrying original request not implemented yet')
-                // ⚠️ Optionally retry the original message here with message.requestId
               } catch (err) {
                 console.error('[WS] Failed to refresh token:', err)
                 useAuthStore.getState().logout()
               }
 
-              return // Don't call handler if we're in unauthorized state
+              return
             }
 
             const handler = get().pending[message.requestId]
             if (handler) {
-              handler(message.data)
               const newPending = { ...get().pending }
               delete newPending[message.requestId]
               set({ pending: newPending })
+
+              if (message.status === 'error') {
+                handler(Promise.reject(new Error(message.error || 'WebSocket command failed')))
+              } else {
+                handler(Promise.resolve(message.data ?? {}))
+              }
+            } else {
+              console.warn('[WS] No handler for requestId:', message.requestId)
             }
           } catch (err) {
             console.error('[WS] Failed to parse message', err)
@@ -158,9 +170,10 @@ export const useWebSocketStore = create<WebSocketStore>()(
           set({
             pending: {
               ...pending,
-              [requestId]: data => {
+              [requestId]: dataPromise => {
                 clearTimeout(timeout)
-                resolve(data)
+                // Normalize response regardless of sync or async return
+                Promise.resolve(dataPromise).then(resolve).catch(reject)
               },
             },
           })

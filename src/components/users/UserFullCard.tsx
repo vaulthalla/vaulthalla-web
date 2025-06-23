@@ -1,10 +1,33 @@
 'use client'
 
 import { User } from '@/models/user'
+import { useEffect, useState } from 'react'
+import { useAuthStore } from '@/stores/authStore'
+import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
 import { motion } from 'framer-motion'
 import { getUserIcon } from '@/util/getUserIcon'
+import Link from 'next/link'
+import { Button } from '@/components/Button'
 
-const UserCard = (user: User) => {
+const UserFullCard = ({ id }: { id: number }) => {
+  const [user, setUser] = useState<User | null>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (user) return
+      try {
+        const fetchedUser = await useAuthStore.getState().getUser(id)
+        setUser(fetchedUser)
+      } catch (err) {
+        console.error('Failed to fetch user:', err)
+      }
+    }
+
+    fetchUser()
+  }, [id])
+
+  if (!user) return <CircleNotchLoader />
+
   const Icon = getUserIcon(user.role)
 
   return (
@@ -37,8 +60,16 @@ const UserCard = (user: User) => {
           </p>
         </div>
       </div>
+      <Link href="/dashboard/users/[slug]/edit" as={`/dashboard/users/${user.id}/edit`}>
+        <Button variant="default">Edit</Button>
+      </Link>
+      <Link href="/dashboard/users/[slug]/change-password" as={`/dashboard/users/${user.id}/change-password`}>
+        <Button variant="glass" className="mt-2">
+          Change Password
+        </Button>
+      </Link>
     </motion.div>
   )
 }
 
-export default UserCard
+export default UserFullCard

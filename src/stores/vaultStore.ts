@@ -24,7 +24,7 @@ export const useVaultStore = create<VaultStore>()(
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
 
-        const response = await ws.sendCommand('storage.vault.list', {})
+        const response = await ws.sendCommand('storage.vault.list', null)
 
         const vaults = toVaultArray(JSON.parse(response.vaults))
 

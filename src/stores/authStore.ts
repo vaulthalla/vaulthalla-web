@@ -4,6 +4,9 @@ import { getErrorMessage } from '@/util/handleErrors'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 import { User } from '@/models/user'
 
+let refreshAttempts = 0
+const MAX_REFRESH_RETRIES = 3
+
 interface AuthState {
   token: string | null
   user: User | null
@@ -14,6 +17,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>
   registerUser: (name: string, email: string, password: string, is_active: boolean, role: string) => Promise<void>
   updateUser: (id: number, data: Partial<User>) => Promise<void>
+  changePassword: (id: number, old_password: string, new_password: string) => Promise<void>
   isUserAuthenticated: () => Promise<boolean>
   logout: () => void
   refreshToken: () => Promise<void>
@@ -30,9 +34,8 @@ export const useAuthStore = create<AuthState>()(
       loading: false,
       error: null,
 
-      // Helper to sync token to cookie
       setTokenCookie: (token: string | null) => {
-        if (typeof document === 'undefined') return // SSR safety
+        if (typeof document === 'undefined') return
         if (token) {
           document.cookie = `token=${token}; path=/; secure; sameSite=Strict`
         } else {
@@ -46,10 +49,9 @@ export const useAuthStore = create<AuthState>()(
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.login', { email, password })
 
-          console.log(response)
-
           set({ token: response.token, user: response.user })
           get().setTokenCookie(response.token)
+          refreshAttempts = 0
         } catch (err) {
           set({ error: getErrorMessage(err) || 'Login failed' })
           throw err
@@ -58,67 +60,22 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      registerUser: (name, email, password, is_active, role) => {
+      registerUser: async (name, email, password, is_active, role) => {
         set({ loading: true, error: null })
-        return new Promise<void>(async (resolve, reject) => {
-          try {
-            const sendCommand = useWebSocketStore.getState().sendCommand
-            const response = await sendCommand('auth.register', { name, email, password, is_active, role })
+        try {
+          const sendCommand = useWebSocketStore.getState().sendCommand
+          const response = await sendCommand('auth.register', { name, email, password, is_active, role })
 
-            set({ token: response.token, user: response.user })
-            get().setTokenCookie(response.token)
-            resolve()
-          } catch (err) {
-            const errorMessage = getErrorMessage(err) || 'Registration failed'
-            set({ error: errorMessage })
-            reject(errorMessage)
-          } finally {
-            set({ loading: false })
-          }
-        })
-      },
-
-      updateUser: (id: number, data: Partial<User>) => {
-        set({ loading: true, error: null })
-        return new Promise<void>(async (resolve, reject) => {
-          try {
-            const sendCommand = useWebSocketStore.getState().sendCommand
-            const response = await sendCommand('auth.user.update', { id, ...data })
-
-            console.log(response.user)
-
-            set(state => ({ user: state.user?.id === id ? { ...state.user, ...response.user } : state.user }))
-            resolve()
-          } catch (err) {
-            const errorMessage = getErrorMessage(err) || 'User update failed'
-            set({ error: errorMessage })
-            reject(errorMessage)
-          } finally {
-            set({ loading: false })
-          }
-        })
-      },
-
-      isUserAuthenticated: () => {
-        set({ loading: true, error: null })
-        return new Promise<boolean>(async resolve => {
-          try {
-            const sendCommand = useWebSocketStore.getState().sendCommand
-            const response = await sendCommand('auth.isAuthenticated', null)
-
-            console.log(response)
-
-            set({ user: response.user })
-            resolve(true)
-            return response.isAuthenticated
-          } catch (err) {
-            const errorMessage = getErrorMessage(err) || 'Authentication check failed'
-            set({ error: errorMessage, user: null })
-            resolve(false)
-          } finally {
-            set({ loading: false })
-          }
-        })
+          set({ token: response.token, user: response.user })
+          get().setTokenCookie(response.token)
+          refreshAttempts = 0
+        } catch (err) {
+          const errorMessage = getErrorMessage(err) || 'Registration failed'
+          set({ error: errorMessage })
+          throw errorMessage
+        } finally {
+          set({ loading: false })
+        }
       },
 
       logout: () => {
@@ -128,7 +85,7 @@ export const useAuthStore = create<AuthState>()(
           const sendCommand = useWebSocketStore.getState().sendCommand
           const socket = useWebSocketStore.getState().socket
           sendCommand('auth.logout', null)
-          setTimeout(() => socket?.close(), 100) // Close socket after logout
+          setTimeout(() => socket?.close(), 100)
         } catch (err) {
           set({ error: getErrorMessage(err) || 'Logout failed' })
         }
@@ -137,15 +94,22 @@ export const useAuthStore = create<AuthState>()(
       refreshToken: async () => {
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
-          const response = await sendCommand('auth.refresh', {}) // relies on HttpOnly cookie
+          const response = await sendCommand('auth.refresh', null)
 
-          set({ token: response.token, user: response.user })
-          get().setTokenCookie(response.token) // Optional if you're also setting via WebSocketSession
+          set({ token: response.token, user: response.user, error: null })
+          get().setTokenCookie(response.token)
+          refreshAttempts = 0
           console.log('[Auth] Token refreshed')
         } catch (err) {
-          console.error('[Auth] Token refresh failed', err)
+          refreshAttempts++
+          console.error(`[Auth] Token refresh failed (Attempt ${refreshAttempts})`, err)
           set({ token: null, user: null, error: getErrorMessage(err) })
           get().setTokenCookie(null)
+
+          if (refreshAttempts >= MAX_REFRESH_RETRIES) {
+            console.warn('[Auth] Max refresh attempts reached. Logging out...')
+            get().logout()
+          }
         }
       },
 
@@ -171,14 +135,56 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      isUserAuthenticated: async () => {
+        set({ loading: true, error: null })
+        try {
+          const sendCommand = useWebSocketStore.getState().sendCommand
+          const response = await sendCommand('auth.isAuthenticated', null)
+
+          set({ user: response.user })
+          return true
+        } catch (err) {
+          set({ error: getErrorMessage(err), user: null })
+          return false
+        } finally {
+          set({ loading: false })
+        }
+      },
+
+      updateUser: async (id, data) => {
+        set({ loading: true, error: null })
+        try {
+          const sendCommand = useWebSocketStore.getState().sendCommand
+          const response = await sendCommand('auth.user.update', { id, ...data })
+
+          set(state => ({ user: state.user?.id === id ? { ...state.user, ...response.user } : state.user }))
+        } catch (err) {
+          set({ error: getErrorMessage(err) || 'User update failed' })
+          throw err
+        } finally {
+          set({ loading: false })
+        }
+      },
+
+      changePassword: async (id, old_password, new_password) => {
+        set({ loading: true, error: null })
+        try {
+          const sendCommand = useWebSocketStore.getState().sendCommand
+          await sendCommand('auth.user.change_password', { id, old_password, new_password })
+        } catch (err) {
+          set({ error: getErrorMessage(err) || 'Password change failed' })
+          throw err
+        } finally {
+          set({ loading: false })
+        }
+      },
+
       getUser: async (id: number) => {
         set({ loading: true, error: null })
         try {
           await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.user.get', { id })
-
-          console.log(response.user)
 
           return response.user
         } catch (err) {
@@ -194,9 +200,7 @@ export const useAuthStore = create<AuthState>()(
         try {
           await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
-          const response = await sendCommand('auth.users.list', {})
-
-          console.log(response.users)
+          const response = await sendCommand('auth.users.list', null)
 
           return response.users
         } catch (err) {
@@ -209,24 +213,15 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-store',
+      partialize: state => ({ token: state.token, user: state.user }),
       onRehydrateStorage: () => () => {
-        if (useAuthStore.getState().token) return
+        if (!useAuthStore.getState().token) return
 
-        console.log('[AuthStore] Rehydrated')
-
-        // Fire and forget (non-blocking)
+        console.log('[AuthStore] Rehydrated with token. Starting silent refresh...')
         ;(async () => {
           try {
-            console.log('[AuthStore] Waiting for WebSocket connection...')
-
-            // 💡 MOVE this INSIDE the async block to avoid premature access
-            const ws = (await import('@/stores/useWebSocket')).useWebSocketStore
-
-            await ws.getState().waitForConnection()
-            console.log('[AuthStore] WebSocket connected. Attempting silent refresh...')
-
+            await (await import('@/stores/useWebSocket')).useWebSocketStore.getState().waitForConnection()
             await useAuthStore.getState().refreshToken()
-            console.log('[AuthStore] Silent refresh complete')
           } catch (err) {
             console.error('[AuthStore] Silent refresh failed:', err)
             useAuthStore.getState().logout()

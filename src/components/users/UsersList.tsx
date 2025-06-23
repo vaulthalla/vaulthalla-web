@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
 import Link from 'next/link'
+import { Button } from '@/components/Button'
 
 const UsersList = () => {
   const [users, setUsers] = useState<User[]>([])
@@ -28,12 +29,19 @@ const UsersList = () => {
 
   return (
     <div>
-      <h1 className="text-4xl">Users</h1>
-      {users.map(user => (
-        <Link href="/dashboard/users/[id]" as={`/dashboard/users/${user.id}`} key={user.id}>
-          <UserCard {...user} />
-        </Link>
-      ))}
+      <div>
+        <h1 className="text-4xl">Users</h1>
+        {users.map(user => (
+          <Link href="/dashboard/users/[id]" as={`/dashboard/users/${user.id}`} key={user.id}>
+            <UserCard {...user} />
+          </Link>
+        ))}
+      </div>
+      <Link href="/dashboard/users/add">
+        <Button type="button" variant="default">
+          + Add New User
+        </Button>
+      </Link>
     </div>
   )
 }

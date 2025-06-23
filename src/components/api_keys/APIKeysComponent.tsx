@@ -27,7 +27,7 @@ const APIKeysComponent = () => {
       : <p className="text-gray-500">No API keys found. Create one to get started.</p>}
 
       <Link href="/dashboard/api-keys/add">
-        <Button className="w-full cursor-pointer rounded-lg bg-blue-600 px-4 py-2.5 font-semibold text-white transition-colors duration-200 hover:bg-blue-700">
+        <Button className="w-full cursor-pointer rounded-lg bg-blue-600 px-4 font-semibold text-white transition-colors duration-200 hover:bg-blue-700">
           + Create New API Key
         </Button>
       </Link>

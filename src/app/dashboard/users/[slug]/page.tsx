@@ -1,10 +1,10 @@
-import UserForm from '@/components/users/UserForm'
+import UserFullCard from '@/components/users/UserFullCard'
 
 const UserPage = async ({ params }: { params: Promise<{ slug: string }> }) => {
   const { slug } = await params
   const id = Number(slug)
 
-  return <UserForm id={id} />
+  return <UserFullCard id={id} />
 }
 
 export default UserPage

@@ -22,7 +22,9 @@
       "@/public/*": ["./public/*"],
       "@/icons/*": ["./public/icons/*"],
       "@/fa-regular/*": ["./public/icons/fa/regular/*"],
+      "@/fa-light/*": ["./public/icons/fa/light/*"],
       "@/fa-duotone/*": ["./public/icons/fa/duotone/*"],
+      "@/fa-duotone-regular/*": ["./public/icons/fa/duotone-regular/*"],
       "@/fa-brands/*": ["./public/icons/fa/brands/*"],
       "@/*": ["./src/*"],
     }

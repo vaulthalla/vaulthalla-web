@@ -33,7 +33,7 @@ const VaultCard = (vault: Vault) => {
       </div>
 
       <div className="flex items-center space-x-2 text-2xl">
-        <HardDrive className="fill-current text-cyan-600" />
+        <HardDrive className="text-primary fill-current" />
         <h2 className="font-bold tracking-tight text-white">{vault.name}</h2>
       </div>
 

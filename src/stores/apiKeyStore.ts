@@ -19,14 +19,14 @@ export const useApiKeyStore = create<ApiKeyStore>()(
 
       async fetchApiKeys() {
         const sendCommand = useWebSocketStore.getState().sendCommand
-        const response = await sendCommand('storage.apiKey.list.user', {})
+        const response = await sendCommand('storage.apiKey.list.user', null)
         set({ apiKeys: toAPIKeyArray(JSON.parse(response.keys)) })
       },
 
       async addApiKey(apiKeyPayload) {
         const sendCommand = useWebSocketStore.getState().sendCommand
         await sendCommand('storage.apiKey.add', apiKeyPayload)
-        await get().fetchApiKeys({})
+        await get().fetchApiKeys(null)
       },
 
       async removeApiKey({ id }) {
@@ -34,7 +34,7 @@ export const useApiKeyStore = create<ApiKeyStore>()(
         await sendCommand('storage.apiKey.remove', { id })
 
         const current = get().apiKeys.find(k => k.id === id)
-        if (current) await get().fetchApiKeys({})
+        if (current) await get().fetchApiKeys(null)
       },
 
       async getApiKey({ id }) {
@@ -55,11 +55,10 @@ export const useApiKeyStore = create<ApiKeyStore>()(
         ;(async () => {
           try {
             console.log('[ApiKeyStore] Waiting for WebSocket connection...')
-            const ws = (await import('@/stores/useWebSocket')).useWebSocketStore
-            await ws.getState().waitForConnection()
+            await (await import('@/stores/useWebSocket')).useWebSocketStore.getState().waitForConnection()
             console.log('[ApiKeyStore] WebSocket connected. Re-fetching API keys...')
 
-            await useApiKeyStore.getState().fetchApiKeys({})
+            await useApiKeyStore.getState().fetchApiKeys(null)
             console.log('[ApiKeyStore] API key fetch complete')
           } catch (err) {
             console.error('[ApiKeyStore] Rehydrate fetch failed:', err)
