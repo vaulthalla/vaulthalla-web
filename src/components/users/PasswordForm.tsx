@@ -72,11 +72,15 @@ const PasswordForm = ({ id }: { id: number }) => {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex max-w-md flex-col gap-4 text-sm">
+        <div hidden>
+          <input hidden type="text" id="username" autoComplete="username" value={user.id} readOnly />
+        </div>
         <div>
           <label className="block font-medium text-gray-200">Old Password</label>
           <input
             type="password"
             {...register('old_password')}
+            autoComplete="current-password"
             className="focus:ring-primary w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:outline-none"
           />
           {errors.old_password && <p className="mt-1 text-red-400">{errors.old_password.message}</p>}
@@ -87,6 +91,7 @@ const PasswordForm = ({ id }: { id: number }) => {
           <input
             type="password"
             {...register('new_password')}
+            autoComplete="new-password"
             className="focus:ring-primary w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:outline-none"
           />
           {errors.new_password && <p className="mt-1 text-red-400">{errors.new_password.message}</p>}
@@ -97,6 +102,7 @@ const PasswordForm = ({ id }: { id: number }) => {
           <input
             type="password"
             {...register('confirm_password')}
+            autoComplete="new-password"
             className="focus:ring-primary w-full rounded-lg border border-gray-600 bg-gray-800 px-3 py-2 text-white focus:ring-2 focus:outline-none"
           />
           {errors.confirm_password && <p className="mt-1 text-red-400">{errors.confirm_password.message}</p>}

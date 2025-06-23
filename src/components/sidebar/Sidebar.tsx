@@ -14,7 +14,14 @@ export const Sidebar = () => {
   return (
     <aside className="h-full w-72 border-r border-white/20 bg-gradient-to-b from-white/10 to-black/20 shadow-[0_0_60px_20px_rgba(100,255,255,0.1)] backdrop-blur-xl backdrop-saturate-150">
       <div className="flex h-full flex-col space-y-8 p-6">
-        <NextImage src={Logo} alt="Vaulthalla Logo" width={100} height={100} className="mx-auto mb-4" />
+        <NextImage
+          src={Logo}
+          alt="Vaulthalla Logo"
+          width={100}
+          height={100}
+          priority
+          className="mx-auto mb-4 h-auto w-auto"
+        />
         {user && user.name && <h3 className="text-center text-2xl">Welcome, {user.name}!</h3>}
         <Navbar />
         <div className="flex-grow" />
