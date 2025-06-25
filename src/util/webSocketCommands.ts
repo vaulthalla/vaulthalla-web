@@ -4,6 +4,7 @@ import { APIKey } from '@/models/apiKey'
 import { User } from '@/models/user'
 import { Role } from '@/models/role'
 import { Permission } from '@/models/permission'
+import { Settings } from '@/models/settings'
 
 export interface WebSocketCommandMap {
   // Auth
@@ -110,6 +111,11 @@ export interface WebSocketCommandMap {
   'permission.get.byName': { payload: { name: string }; response: { permission: Permission } }
 
   'permissions.list': { payload: null; response: { permissions: Permission[] } }
+
+  // Settings
+  'settings.get': { payload: null; response: { settings: Settings } }
+
+  'settings.update': { payload: Partial<Settings>; response: { settings: Settings } }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']
