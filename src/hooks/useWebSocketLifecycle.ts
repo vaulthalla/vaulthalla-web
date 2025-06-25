@@ -7,16 +7,11 @@ export const useWebSocketLifecycle = () => {
   const { connect, disconnect } = useWebSocketStore()
 
   useEffect(() => {
-    const tryConnect = () => {
-      connect()
-    }
+    const id = setTimeout(() => connect(), 1)
 
-    if (document.readyState === 'complete') {
-      tryConnect()
-    } else {
-      window.addEventListener('load', tryConnect, { once: true })
+    return () => {
+      clearTimeout(id)
+      disconnect()
     }
-
-    return () => disconnect()
   }, [connect, disconnect])
 }

@@ -2,6 +2,8 @@ import { Vault } from '@/models/vaults'
 import { Volume } from '@/models/volumes'
 import { APIKey } from '@/models/apiKey'
 import { User } from '@/models/user'
+import { Role } from '@/models/role'
+import { Permission } from '@/models/permission'
 
 export interface WebSocketCommandMap {
   // Auth
@@ -88,6 +90,26 @@ export interface WebSocketCommandMap {
   'storage.apiKey.remove': { payload: { id: number }; response: null }
 
   'storage.apiKey.get': { payload: { id: number }; response: { key: APIKey } }
+
+  // Roles and Permissions
+
+  'role.add': { payload: Partial<Role>; response: { role: Role } }
+
+  'role.delete': { payload: { id: number }; response: null }
+
+  'role.update': { payload: Partial<Role>; response: { role: Role } }
+
+  'role.get': { payload: { id: number }; response: { role: Role } }
+
+  'role.get.byName': { payload: { name: string }; response: { role: Role } }
+
+  'roles.list': { payload: null; response: { roles: Role[] } }
+
+  'permission.get': { payload: { id: number }; response: { permission: Permission } }
+
+  'permission.get.byName': { payload: { name: string }; response: { permission: Permission } }
+
+  'permissions.list': { payload: null; response: { permissions: Permission[] } }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']

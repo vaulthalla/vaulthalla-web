@@ -9,6 +9,7 @@ import FolderOpen from '@/fa-duotone/folder-open.svg'
 import Vault from '@/fa-duotone/vault.svg'
 import KeySkeleton from '@/fa-duotone/key-skeleton.svg'
 import UserGroup from '@/fa-duotone/user-group.svg'
+import PeopleGroup from '@/fa-duotone/people-group.svg'
 import Sliders from '@/fa-duotone/sliders.svg'
 import ShieldKeyhole from '@/fa-duotone/shield-keyhole.svg'
 import CaretDown from '@/fa-duotone/caret-down.svg'
@@ -30,8 +31,9 @@ const Navbar = () => {
     { label: 'Vaults', href: '/dashboard/vaults', icon: Vault },
     { label: 'API Keys', href: '/dashboard/api-keys', icon: KeySkeleton },
     { label: 'Users', href: '/dashboard/users', icon: UserGroup },
+    { label: 'Roles', href: '/dashboard/roles', icon: ShieldKeyhole },
+    { label: 'Groups', href: '/dashboard/groups', icon: PeopleGroup },
     { label: 'Settings', href: '/dashboard/settings', icon: Sliders },
-    { label: 'Admin', href: '/dashboard/admin', icon: ShieldKeyhole },
   ]
 
   const renderNavItem = (item: navItem, depth = 0) => {

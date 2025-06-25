@@ -43,6 +43,7 @@
     --glow-red: #dc262688;
     --glow-green: #22c55e88;
     --glow-yellow: #facc1588;
+    --glow-orange: rgba(255, 107, 0, 0.9);
 
     /* Font */
     --font-sans: var(--font-geist-sans, 'Geist Sans', sans-serif);
@@ -77,6 +78,12 @@
 
     --color-success: var(--success);
     --color-success-foreground: var(--success-foreground);
+
+    --color-glow-cyan: var(--glow-cyan);
+    --color-glow-red: var(--glow-red);
+    --color-glow-green: var(--glow-green);
+    --color-glow-yellow: var(--glow-yellow);
+    --color-glow-orange: var(--glow-orange);
 
     --font-sans: var(--font-sans);
     --font-mono: var(--font-mono);

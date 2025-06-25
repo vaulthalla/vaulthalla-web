@@ -8,6 +8,7 @@ import { useState } from 'react'
 import Logo from '@/public/vaulthalla-logo.png'
 import NextImage from 'next/image'
 import { Button } from '@/components/Button'
+import { useWebSocketStore } from '@/stores/useWebSocket'
 
 interface LoginFormValues {
   email: string
@@ -41,12 +42,10 @@ const LoginForm = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setError('')
     try {
+      await useWebSocketStore.getState().waitForConnection()
       await login(data.email, data.password)
-      if (useAuthStore.getState().token) {
-        router.push('/dashboard')
-      } else {
-        setError('Login failed')
-      }
+      if (useAuthStore.getState().token) router.push('/dashboard')
+      else setError('Login failed')
     } catch (err) {
       setError(getErrorMessage(err) || 'Login failed')
     }
