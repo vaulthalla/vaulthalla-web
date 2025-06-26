@@ -5,8 +5,8 @@ import UserIcon from '@/fa-duotone-regular/user.svg'
 import UserSecret from '@/fa-duotone-regular/user-secret.svg'
 
 export const getUserIcon = (role: string) => {
-  if (role === 'Super Administrator') return Crown
-  else if (role === 'Administrator') return ShieldHalved
+  if (role === 'Super Admin') return Crown
+  else if (role === 'Admin') return ShieldHalved
   else if (role === 'Moderator') return Gavel
   else if (role === 'User') return UserIcon
   else if (role === 'Guest') return UserSecret

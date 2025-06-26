@@ -49,7 +49,7 @@ const UserForm = ({ id }: { id?: number }) => {
         data.is_active = Boolean(data.is_active)
         await updateUser(user.id, data)
       } else {
-        await registerUser(data.name, data.email, data.password, Boolean(data.is_active), data.role)
+        await registerUser(data.name, data.email, data.password, Boolean(data.is_active), data.global_role.id)
       }
       router.push('/dashboard/users')
     } catch (err) {
@@ -108,7 +108,7 @@ const UserForm = ({ id }: { id?: number }) => {
           </option>
         ))}
       </select>
-      {errors.role && <p className="text-sm text-red-500">{errors.role.message}</p>}
+      {errors.role && <p className="text-sm text-red-500">{errors.global_role?.message}</p>}
 
       <select {...register('is_active')} className="w-full rounded border px-3 py-2 dark:bg-gray-700">
         <option value="true">Active</option>

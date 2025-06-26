@@ -202,6 +202,8 @@ export const useAuthStore = create<AuthState>()(
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.users.list', null)
 
+          console.log(response)
+
           return response.users
         } catch (err) {
           set({ error: getErrorMessage(err) || 'Failed to fetch users' })

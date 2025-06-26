@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { getUserIcon } from '@/util/getUserIcon'
 
 const UserCard = (user: User) => {
-  const Icon = getUserIcon(user.role)
+  const Icon = getUserIcon(user.global_role.display_name)
 
   return (
     <motion.div
@@ -24,7 +24,7 @@ const UserCard = (user: User) => {
             <span className="font-medium text-gray-400">Email:</span> {user.email}
           </p>
           <p>
-            <span className="font-medium text-gray-400">Role:</span> {user.role}
+            <span className="font-medium text-gray-400">Role:</span> {user.global_role.display_name}
           </p>
         </div>
 

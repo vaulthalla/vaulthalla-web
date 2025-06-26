@@ -14,6 +14,7 @@ import CloudDownload from '@/fa-duotone/cloud-arrow-down.svg'
 import TrashCan from '@/fa-duotone/trash-can.svg'
 import ShareNodes from '@/fa-duotone/share-nodes.svg'
 import Lock from '@/fa-duotone/lock.svg'
+import Gear from '@/fa-duotone/gear.svg'
 
 const permissionIconMap: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
   'MANAGE USERS': UsersGear,
@@ -26,6 +27,7 @@ const permissionIconMap: Record<string, React.FC<React.SVGProps<SVGSVGElement>>>
   'DELETE FILE': TrashCan,
   'SHARE FILE': ShareNodes,
   'LOCK FILE': Lock,
+  'MANAGE SETTINGS': Gear,
 }
 
 const RoleCard = (role: Role) => {

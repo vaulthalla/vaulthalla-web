@@ -28,7 +28,7 @@ const UserFullCard = ({ id }: { id: number }) => {
 
   if (!user) return <CircleNotchLoader />
 
-  const Icon = getUserIcon(user.role)
+  const Icon = getUserIcon(user.global_role.display_name)
 
   return (
     <motion.div
@@ -36,7 +36,7 @@ const UserFullCard = ({ id }: { id: number }) => {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       whileHover={{ scale: 1.02 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="card-glass my-4 w-128 rounded-2xl border border-white/10 p-6 text-left shadow-xl backdrop-blur-md transition-transform duration-300 hover:shadow-2xl">
+      className="card-glass my-4 h-fit w-128 rounded-2xl border border-white/10 p-6 text-left shadow-xl backdrop-blur-md transition-transform duration-300 hover:shadow-2xl">
       <div className="mb-4 flex items-center justify-between text-2xl">
         <h3 className="font-semibold tracking-tight text-white">{user.name}</h3>
         <Icon className="text-primary fill-current" />
@@ -47,7 +47,7 @@ const UserFullCard = ({ id }: { id: number }) => {
             <span className="font-medium text-gray-400">Email:</span> {user.email}
           </p>
           <p>
-            <span className="font-medium text-gray-400">Role:</span> {user.role}
+            <span className="font-medium text-gray-400">Role:</span> {user.global_role.display_name}
           </p>
         </div>
 

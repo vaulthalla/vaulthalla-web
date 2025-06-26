@@ -1,3 +1,5 @@
+import { Role } from '@/models/role'
+
 export interface IUser {
   id: number
   name: string
@@ -5,7 +7,8 @@ export interface IUser {
   created_at: string
   last_login: string
   is_active: boolean
-  role: string
+  global_role: Role
+  scoped_roles: Role[]
 }
 
 export class User {
@@ -15,7 +18,8 @@ export class User {
   created_at: string
   last_login: string
   is_active: boolean
-  role: string
+  global_role: Role
+  scopedRoles: Role[]
 
   constructor(data: IUser) {
     this.id = data.id
@@ -24,7 +28,8 @@ export class User {
     this.created_at = data.created_at
     this.last_login = data.last_login
     this.is_active = data.is_active
-    this.role = data.role
+    this.global_role = Role.fromData(data.global_role)
+    this.scopedRoles = data.scoped_roles.map(role => Role.fromData(role))
   }
 
   static fromJSON(data: IUser): User {

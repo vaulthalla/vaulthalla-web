@@ -5,6 +5,7 @@ import { User } from '@/models/user'
 import { Role } from '@/models/role'
 import { Permission } from '@/models/permission'
 import { Settings } from '@/models/settings'
+import { Group } from '@/models/group'
 
 export interface WebSocketCommandMap {
   // Auth
@@ -116,6 +117,34 @@ export interface WebSocketCommandMap {
   'settings.get': { payload: null; response: { settings: Settings } }
 
   'settings.update': { payload: Partial<Settings>; response: { settings: Settings } }
+
+  // Group commands
+
+  'group.add': { payload: { name: string; description?: string }; response: { group: Group } }
+
+  'group.remove': { payload: { id: number }; response: null }
+
+  'group.update': { payload: Partial<Group>; response: { group: Group } }
+
+  'group.get': { payload: { id: number }; response: { group: Group } }
+
+  'groups.list': { payload: null; response: { groups: Group[] } }
+
+  'group.member.add': { payload: { group_id: number; user_id: number }; response: { group: Group } }
+
+  'group.member.remove': { payload: { group_id: number; user_id: number }; response: { group: Group } }
+
+  'group.get.byName': { payload: { name: string }; response: { group: Group } }
+
+  'group.get.byVolume': { payload: { volume_id: number }; response: { group: Group } }
+
+  'group.volume.add': { payload: { group_id: number; volume_id: number }; response: { group: Group } }
+
+  'group.volume.remove': { payload: { group_id: number; volume_id: number }; response: { group: Group } }
+
+  'groups.list.byUser': { payload: { user_id: number }; response: { groups: Group[] } }
+
+  'groups.list.byVolume': { payload: { volume_id: number }; response: { groups: Group[] } }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']
