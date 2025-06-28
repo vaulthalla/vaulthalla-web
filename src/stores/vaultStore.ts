@@ -12,7 +12,7 @@ interface VaultStore {
   getVault: (
     payload: WSCommandPayload<'storage.vault.get'>,
   ) => Promise<Vault | LocalDiskStorage | S3Storage | undefined>
-  getLocalVault: () => LocalDiskStorage | undefined
+  getLocalVault: () => Promise<LocalDiskStorage | undefined>
 }
 
 export const useVaultStore = create<VaultStore>()(
@@ -61,7 +61,8 @@ export const useVaultStore = create<VaultStore>()(
         return response.vault
       },
 
-      getLocalVault(): LocalDiskStorage | undefined {
+      async getLocalVault() {
+        if (!get().vaults.length) await get().fetchVaults()
         const local = get().vaults.find(v => v.type === 'local' && v.isActive)
 
         if (local instanceof LocalDiskStorage) return local

@@ -1,23 +1,15 @@
 'use client'
 
-import { useVaultStore } from '@/stores/vaultStore'
-import VaultCard from '@/components/vault/VaultCard'
-import Link from 'next/link'
+import { FileSystem } from '@/components/files/Filesystem'
+import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
+import { useFSStore } from '@/stores/fsStore'
 
 const FilesClientPage = () => {
-  const { vaults } = useVaultStore()
+  const { files } = useFSStore()
 
-  if (vaults.length === 0) return <p>No Vaults found...</p>
+  if (!files) return <CircleNotchLoader />
 
-  return (
-    <div>
-      {vaults.map(vault => (
-        <Link href="/dashboard/files/vault/[vault_id]" as={`/dashboard/files/vault/${vault.id}`} key={vault.id}>
-          <VaultCard {...vault} />
-        </Link>
-      ))}
-    </div>
-  )
+  return <FileSystem files={files} onNavigate={() => {}} />
 }
 
 export default FilesClientPage

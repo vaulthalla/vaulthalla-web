@@ -8,9 +8,9 @@ export class Vault {
   createdAt: string
 
   constructor(
-    id: number,
-    name: string,
-    type: VaultType,
+    id: number = 0,
+    name: string = '',
+    type: VaultType = 'local',
     isActive: boolean = true,
     createdAt: string = new Date().toISOString(),
   ) {
@@ -34,7 +34,7 @@ export class LocalDiskStorage extends Vault {
 }
 
 export class S3Storage extends Vault {
-  vault_id: number
+  vault_id: number = 0
   bucket: string
   region: string
   accessKey: string

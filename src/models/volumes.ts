@@ -16,9 +16,9 @@ export class Volume implements VolumeType {
   created_at: string
 
   constructor(
-    id: number,
-    vault_id: number,
-    name: string,
+    id: number = 0,
+    vault_id: number = 0,
+    name: string = '',
     path_prefix?: string,
     quota_bytes?: number,
     created_at: string = new Date().toISOString(),
