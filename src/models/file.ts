@@ -45,3 +45,10 @@ export class File implements IFile {
     return `${this.isDirectory ? 'DIR' : 'FILE'}: ${this.fullPath ?? this.name}`
   }
 }
+
+export interface IFileUpload {
+  vault_id: number
+  volume_id: number
+  path: string
+  size?: number
+}

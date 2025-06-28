@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 import { WSCommandPayload } from '@/util/webSocketCommands'
-import { File } from '@/models/file'
+import { File as DBFile } from '@/models/file'
 import { LocalDiskStorage, S3Storage, Vault } from '@/models/vaults'
 import { Volume } from '@/models/volumes'
 import { persist } from 'zustand/middleware'
@@ -12,8 +12,11 @@ interface FsStore {
   currVault: Vault | LocalDiskStorage | S3Storage | null
   currVolume: Volume | null
   path: string
-  files: File[]
+  uploading: boolean
+  uploadProgress: number
+  files: DBFile[]
   fetchFiles: () => Promise<void>
+  uploadFile: ({ file, targetPath }: { file: File; targetPath?: string }) => Promise<void>
   setCurrVault: (vault: Vault) => void
   setCurrVolume: (volume: Volume) => void
   setPath: (dir: string) => void
@@ -27,6 +30,8 @@ export const useFSStore = create<FsStore>()(
       currVault: null,
       currVolume: null,
       path: '',
+      uploading: false,
+      uploadProgress: 0,
       files: [],
 
       async fetchFiles() {
@@ -46,11 +51,68 @@ export const useFSStore = create<FsStore>()(
             path: get().path,
           })
 
-          const files = response.files.map(file => new File(file))
+          const files = response.files.map(file => new DBFile(file))
           set({ files })
         } catch (error) {
           console.error('Error fetching files:', error)
           throw error
+        }
+      },
+
+      async uploadFile({ file, targetPath = get().path }) {
+        const ws = useWebSocketStore.getState()
+        await ws.waitForConnection()
+
+        const { currVault, currVolume } = get()
+        if (!currVault || !currVolume) {
+          throw new Error('No current vault or volume selected')
+        }
+
+        set({ uploading: true, uploadProgress: 0 })
+
+        try {
+          // 1️⃣ Start upload
+          const startResp = await ws.sendCommand('fs.upload.start', {
+            vault_id: currVault.id,
+            volume_id: currVolume.id,
+            path: targetPath,
+            size: file.size,
+          })
+
+          const uploadId = startResp.upload_id
+          if (!uploadId) throw new Error('Server did not return an upload_id')
+
+          // 2️⃣ Send binary frames
+          const wsInstance = ws.socket
+          if (!wsInstance || wsInstance.readyState !== WebSocket.OPEN) throw new Error('WebSocket is not connected')
+          const chunkSize = 64 * 1024 // 64KB per frame
+          let offset = 0
+
+          while (offset < file.size) {
+            const slice = file.slice(offset, offset + chunkSize)
+            const arrayBuffer = await slice.arrayBuffer()
+            wsInstance.send(arrayBuffer)
+
+            offset += chunkSize
+            set({ uploadProgress: (offset / file.size) * 100 })
+          }
+
+          // 3️⃣ Finish upload
+          await ws.sendCommand('fs.upload.finish', {
+            vault_id: currVault.id,
+            volume_id: currVolume.id,
+            path: targetPath,
+          })
+
+          console.log('[FsStore] Upload finished successfully')
+          set({ uploading: false, uploadProgress: 100 })
+
+          // Optionally refresh directory listing
+          await get().fetchFiles()
+        } catch (err) {
+          console.error('[FsStore] Upload error:', err)
+          set({ uploading: false, uploadProgress: 0 })
+          throw err
         }
       },
 

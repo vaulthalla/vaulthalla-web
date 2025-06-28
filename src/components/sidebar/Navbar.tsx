@@ -4,8 +4,6 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { usePathname } from 'next/navigation'
 
-import GaugeHigh from '@/fa-duotone/gauge-high.svg'
-import FolderOpen from '@/fa-duotone/folder-open.svg'
 import Vault from '@/fa-duotone/vault.svg'
 import KeySkeleton from '@/fa-duotone/key-skeleton.svg'
 import UserGroup from '@/fa-duotone/user-group.svg'
@@ -26,8 +24,6 @@ const Navbar = () => {
   const pathname = usePathname()
 
   const navItems = [
-    { label: 'Dashboard', href: '/dashboard', icon: GaugeHigh },
-    { label: 'Files', href: '/dashboard/files', icon: FolderOpen },
     { label: 'Vaults', href: '/dashboard/vaults', icon: Vault },
     { label: 'API Keys', href: '/dashboard/api-keys', icon: KeySkeleton },
     { label: 'Users', href: '/dashboard/users', icon: UserGroup },

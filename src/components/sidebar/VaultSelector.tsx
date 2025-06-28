@@ -72,7 +72,7 @@ const VaultSelector = () => {
   }
 
   return (
-    <div className="space-y-2 p-2">
+    <div className="space-y-2">
       <VaultInput />
       <VolumeInput />
     </div>

@@ -6,7 +6,7 @@ import { Role } from '@/models/role'
 import { Permission } from '@/models/permission'
 import { Settings } from '@/models/settings'
 import { Group } from '@/models/group'
-import { File } from '@/models/file'
+import { File, IFileUpload } from '@/models/file'
 
 export interface WebSocketCommandMap {
   // Auth
@@ -153,6 +153,10 @@ export interface WebSocketCommandMap {
     payload: { vault_id: number; volume_id: number; path?: string | undefined }
     response: { files: File[] }
   }
+
+  'fs.upload.start': { payload: IFileUpload; response: { upload_id: string } }
+
+  'fs.upload.finish': { payload: Partial<IFileUpload>; response: { path: string } }
 
   'fs.file.write': {
     payload: { vault_id: number; volume_id: number; path: string; content: string }

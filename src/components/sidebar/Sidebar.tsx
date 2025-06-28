@@ -7,6 +7,7 @@ import Navbar from '@/components/sidebar/Navbar'
 import { Button } from '@/components/Button'
 import VaultSelector from '@/components/sidebar/VaultSelector'
 import { useRouter } from 'next/navigation'
+import ToggleNavButton from '@/components/sidebar/ToggleNavButton'
 
 export const Sidebar = () => {
   const Footer = () => <div className="text-xs text-cyan-400 opacity-70">v0.1.0 • Vaulthalla</div>
@@ -48,6 +49,8 @@ export const Sidebar = () => {
       <div className="flex h-full flex-col space-y-3 p-6">
         <Banner />
         <VaultSelector />
+        <ToggleNavButton />
+        <Spacer />
         <Navbar />
         <Spacer />
         <LogoutButton />
