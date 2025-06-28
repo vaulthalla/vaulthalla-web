@@ -8,13 +8,15 @@ import { useWebSocketStore } from '@/stores/useWebSocket'
 import { getErrorMessage } from '@/util/handleErrors'
 import { Volume } from '@/models/volumes'
 import Link from 'next/link'
+import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
+import VolumeCard from '@/components/volumes/VolumeCard'
 
 interface VolumesComponentProps {
-  vaultId: number
+  vault_id: number
 }
 
-export default function VolumesComponent({ vaultId }: VolumesComponentProps) {
-  const [volumes, setVolumes] = useState<Volume[]>([])
+export default function VolumesComponent({ vault_id }: VolumesComponentProps) {
+  const [volumes, setVolumes] = useState<Volume[] | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -29,7 +31,7 @@ export default function VolumesComponent({ vaultId }: VolumesComponentProps) {
         // If fetch is *too* fast, delay setting loading to true at all
         timeout = setTimeout(() => setLoading(true), 50)
 
-        setVolumes(useVolumeStore.getState().getVolumes({ vaultId }))
+        setVolumes(await useVolumeStore.getState().getVaultVolumes({ vault_id }))
       } catch (err) {
         setError(getErrorMessage(err) || 'Failed to load volumes')
       } finally {
@@ -43,7 +45,9 @@ export default function VolumesComponent({ vaultId }: VolumesComponentProps) {
     return () => {
       if (timeout) clearTimeout(timeout)
     }
-  }, [vaultId])
+  }, [vault_id])
+
+  if (!volumes) return <CircleNotchLoader />
 
   return (
     <motion.div
@@ -59,29 +63,9 @@ export default function VolumesComponent({ vaultId }: VolumesComponentProps) {
 
       {!loading && volumes.length === 0 && <p className="text-gray-500 italic">No volumes found for this vault.</p>}
 
-      {!loading
-        && volumes.map(volume => (
-          <motion.div
-            key={volume.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.05 * volume.id }}
-            className="mb-4 rounded border border-gray-700 bg-gray-800 p-4 text-sm">
-            <p>
-              <span className="font-semibold text-white">Name:</span> {volume.name}
-            </p>
-            <p>
-              <span className="font-semibold text-white">Path:</span> {volume.path_prefix}
-            </p>
-            <p>
-              <span className="font-semibold text-white">Quota:</span>{' '}
-              {volume.quota_bytes ? `${(volume.quota_bytes / 1_073_741_824).toFixed(2)} GB` : 'Unlimited'}
-            </p>
-            <p className="text-gray-400">Created: {new Date(volume.created_at).toLocaleString()}</p>
-          </motion.div>
-        ))}
+      {!loading && volumes.map(volume => <VolumeCard {...volume} key={volume.id} />)}
 
-      <Link href="/dashboard/vaults/[slug]/add-volume" as={`/dashboard/vaults/${vaultId}/add-volume`}>
+      <Link href="/dashboard/vaults/[slug]/add-volume" as={`/dashboard/vaults/${vault_id}/add-volume`}>
         <Button className="mt-4 cursor-pointer">Add New Volume</Button>
       </Link>
     </motion.div>
