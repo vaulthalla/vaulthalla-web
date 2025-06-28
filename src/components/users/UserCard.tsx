@@ -2,7 +2,7 @@
 
 import { User } from '@/models/user'
 import { motion } from 'framer-motion'
-import { getUserIcon } from '@/util/getUserIcon'
+import { getUserIcon } from '@/util/icons/getUserIcon'
 
 const UserCard = (user: User) => {
   const Icon = getUserIcon(user.global_role.display_name)

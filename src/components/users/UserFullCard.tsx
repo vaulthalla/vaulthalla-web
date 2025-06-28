@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useAuthStore } from '@/stores/authStore'
 import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
 import { motion } from 'framer-motion'
-import { getUserIcon } from '@/util/getUserIcon'
+import { getUserIcon } from '@/util/icons/getUserIcon'
 import Link from 'next/link'
 import { Button } from '@/components/Button'
 

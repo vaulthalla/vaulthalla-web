@@ -6,6 +6,7 @@ import { Role } from '@/models/role'
 import { Permission } from '@/models/permission'
 import { Settings } from '@/models/settings'
 import { Group } from '@/models/group'
+import { File } from '@/models/file'
 
 export interface WebSocketCommandMap {
   // Auth
@@ -55,11 +56,11 @@ export interface WebSocketCommandMap {
 
   // Volume commands
 
-  'storage.volume.list': { payload: { vault_id: number }; response: { volumes: Promise<string> } }
+  'storage.volume.list': { payload: { vault_id: number }; response: { volumes: string } }
 
-  'storage.volume.list.user': { payload: { user_id: number }; response: { volumes: Promise<string> } }
+  'storage.volume.list.user': { payload: { user_id: number }; response: { volumes: string } }
 
-  'storage.volume.list.vault': { payload: { vault_id: number }; response: { volumes: Promise<string> } }
+  'storage.volume.list.vault': { payload: { vault_id: number }; response: { volumes: string } }
 
   'storage.volume.add': {
     payload: { user_id: number; vault_id: number; name: string; path_prefix?: string; quota_bytes?: number | null }
@@ -145,6 +146,18 @@ export interface WebSocketCommandMap {
   'groups.list.byUser': { payload: { user_id: number }; response: { groups: Group[] } }
 
   'groups.list.byVolume': { payload: { volume_id: number }; response: { groups: Group[] } }
+
+  // FS commands
+
+  'fs.dir.list': {
+    payload: { vault_id: number; volume_id: number; path?: string | undefined }
+    response: { files: File[] }
+  }
+
+  'fs.file.write': {
+    payload: { vault_id: number; volume_id: number; path: string; content: string }
+    response: { success: boolean }
+  }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']
