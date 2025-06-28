@@ -7,15 +7,15 @@ interface IRole {
   description: string
   scope: string
   scope_id?: number
-  admin_permissions: string[]
-  vault_permissions: string[]
-  file_permissions: string[]
-  directory_permissions: string[]
+  admin_permissions: Record<string, boolean>
+  vault_permissions: Record<string, boolean>
+  file_permissions: Record<string, boolean>
+  directory_permissions: Record<string, boolean>
   created_at: Date // ISO string from backend
   assigned_at: Date
   inherited: boolean
 
-  permissions?: string[] // populated client-side after bitmask decode
+  permissions: string[] // decoded permissions
 }
 
 export class Role {
@@ -28,10 +28,10 @@ export class Role {
     public description: string = '',
     public scope: string = '',
     public scope_id?: number,
-    public admin_permissions: string[] = [],
-    public vault_permissions: string[] = [],
-    public file_permissions: string[] = [],
-    public directory_permissions: string[] = [],
+    public admin_permissions: Record<string, boolean> = {},
+    public vault_permissions: Record<string, boolean> = {},
+    public file_permissions: Record<string, boolean> = {},
+    public directory_permissions: Record<string, boolean> = {},
     public created_at: Date = new Date(),
     public assigned_at: Date = new Date(),
     public inherited: boolean = false,
@@ -39,12 +39,11 @@ export class Role {
   ) {}
 
   static fromData(data: IRole): Role {
-    // Combine all permission categories into one flat array
     const combinedPerms = [
-      ...(data.admin_permissions || []),
-      ...(data.vault_permissions || []),
-      ...(data.file_permissions || []),
-      ...(data.directory_permissions || []),
+      ...Object.keys(data.admin_permissions || {}).filter(k => data.admin_permissions[k]),
+      ...Object.keys(data.vault_permissions || {}).filter(k => data.vault_permissions[k]),
+      ...Object.keys(data.file_permissions || {}).filter(k => data.file_permissions[k]),
+      ...Object.keys(data.directory_permissions || {}).filter(k => data.directory_permissions[k]),
     ]
 
     return new Role(
@@ -56,10 +55,10 @@ export class Role {
       data.description || '',
       data.scope || '',
       data.scope_id ?? undefined,
-      data.admin_permissions || [],
-      data.vault_permissions || [],
-      data.file_permissions || [],
-      data.directory_permissions || [],
+      data.admin_permissions || {},
+      data.vault_permissions || {},
+      data.file_permissions || {},
+      data.directory_permissions || {},
       new Date(data.created_at),
       new Date(data.assigned_at),
       data.inherited,

@@ -2,19 +2,32 @@
 
 import { Role } from '@/models/role'
 import { motion } from 'framer-motion'
-import { permissionCategoryMap, permissionIconMap, permissionNameMap } from '@/util/icons/permissionIconMap'
+import { permissionCategoryMap, permissionIconMap } from '@/util/icons/permissionIconMap'
 
 const RoleCard = (role: Role) => {
-  // Categorize permissions based on the hard map
   const categorizedPerms: Record<string, string[]> = { Admin: [], Vault: [], File: [], Directory: [] }
 
   for (const perm of role.permissions) {
-    const key = permissionNameMap[perm] || perm
-    const category = permissionCategoryMap[key]
+    const category = permissionCategoryMap[perm]
     if (category) {
       categorizedPerms[category].push(perm)
     }
   }
+
+  const Tooltip = ({ children, label }: { children: React.ReactNode; label: string }) => (
+    <div className="group relative">
+      {children}
+      <div className="absolute bottom-full mb-1 hidden w-max max-w-xs rounded bg-black/80 px-2 py-1 text-xs text-white group-hover:block">
+        {label}
+      </div>
+    </div>
+  )
+
+  const transformDisplayName = (name: string) =>
+    name
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, char => char.toUpperCase())
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
 
   return (
     <motion.div
@@ -32,15 +45,16 @@ const RoleCard = (role: Role) => {
               <h4 className="mb-1 text-sm font-bold tracking-wide text-white/60 uppercase">{category}</h4>
               <div className="flex flex-wrap items-center gap-2 rounded-lg bg-black/20 p-3 sm:gap-3">
                 {perms.map((perm, index) => {
-                  const mappedKey = permissionNameMap[perm] || perm
-                  const Icon = permissionIconMap[mappedKey]
+                  const Icon = permissionIconMap[perm]
+                  const label = transformDisplayName(perm)
                   return Icon ?
-                      <Icon
-                        key={index}
-                        className="text-glow-orange fill-current text-xl transition-transform hover:scale-110"
-                        aria-label={perm}
-                      />
-                    : <div key={index} className="text-xl text-white/30" title={perm}>
+                      <Tooltip key={index} label={label}>
+                        <Icon
+                          className="text-glow-orange fill-current text-xl transition-transform hover:scale-110"
+                          aria-label={label}
+                        />
+                      </Tooltip>
+                    : <div key={index} className="text-xl text-white/30" title={label}>
                         •
                       </div>
                 })}

@@ -72,51 +72,6 @@ export const permissionCategoryMap: Record<string, 'Admin' | 'Vault' | 'File' | 
   list_directory: 'Directory',
 }
 
-export const permissionNameMap: Record<string, keyof typeof permissionIconMap> = {
-  // Admin
-  'Manage Users': 'create_user',
-  'Create User': 'create_user',
-  'Create Admin User': 'create_admin_user',
-  'Deactivate User': 'deactivate_user',
-  'Reset User Password': 'reset_user_password',
-  'Manage Roles': 'manage_roles',
-  'Manage Settings': 'manage_settings',
-  'View Audit Log': 'view_audit_log',
-  'Manage API Keys': 'manage_api_keys',
-
-  // Vault
-  'Manage Storage': 'create_local_vault', // or maybe adjust_vault_settings if that's more fitting
-  'Create Local Vault': 'create_local_vault',
-  'Create Cloud Vault': 'create_cloud_vault',
-  'Delete Vault': 'delete_vault',
-  'Adjust Vault Settings': 'adjust_vault_settings',
-  'Migrate Vault Data': 'migrate_vault_data',
-  'Create Volume': 'create_volume',
-  'Delete Volume': 'delete_volume',
-  'Resize Volume': 'resize_volume',
-  'Move Volume': 'move_volume',
-  'Assign Volume to Group': 'assign_volume_to_group',
-
-  // File
-  'Manage Files': 'upload_file', // or adjust to a higher-level key if desired
-  'Upload File': 'upload_file',
-  'Download File': 'download_file',
-  'Delete File': 'delete_file',
-  'Share File': 'share_file_publicly', // default to public share
-  'Share File Publicly': 'share_file_publicly',
-  'Share File With Group': 'share_file_with_group',
-  'Lock File': 'lock_file',
-  'Rename File': 'rename_file',
-  'Move File': 'move_file',
-
-  // Directory
-  'Create Directory': 'create_directory',
-  'Delete Directory': 'delete_directory',
-  'Rename Directory': 'rename_directory',
-  'Move Directory': 'move_directory',
-  'List Directory': 'list_directory',
-}
-
 export const permissionIconMap: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
   // Admin perms
   create_user: UsersGear,

@@ -2,18 +2,27 @@
 
 import { usePermsStore } from '@/stores/permissionStore'
 import RoleCard from '@/components/roles/RoleCard'
+import Link from 'next/link'
+import { Button } from '@/components/Button'
 
 const RolesClientPage = () => {
   const { roles } = usePermsStore()
 
   return (
     <div className="h-full w-full px-6 py-8">
-      <h1 className="mb-6 text-center text-3xl font-bold text-white">Manage Roles</h1>
+      <h1 className="text-center text-3xl font-bold text-white">Manage Roles</h1>
+      <Link href="/dashboard/roles/add">
+        <Button type="button" className="my-6">
+          + Add Role
+        </Button>
+      </Link>
 
       {roles.length > 0 ?
         <div className="3xl:grid-cols-3 grid gap-6 sm:grid-cols-1 md:grid-cols-2">
           {roles.map(role => (
-            <RoleCard {...role} key={role.id} />
+            <Link href="/dashboard/roles/[role_id]" as={`/dashboard/roles/${role.id}`} key={role.id}>
+              <RoleCard {...role} key={role.id} />
+            </Link>
           ))}
         </div>
       : <p className="text-center text-white/60">No roles found.</p>}
