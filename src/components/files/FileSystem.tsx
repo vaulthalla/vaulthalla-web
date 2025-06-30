@@ -72,7 +72,7 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
                   onMouseLeave={() => setHovered(null)}
                   className="cursor-pointer border-b border-gray-800/60 transition-colors hover:bg-gray-800/70">
                   <TableCell
-                    className="flex items-center gap-2 py-2 pl-6 text-white"
+                    className="flex items-center gap-2 pl-2 text-white"
                     onClick={() => r.isDirectory && onNavigate(r.fullPath ?? r.name)}>
                     {r.icon}
                     <span className="max-w-[260px] truncate select-none">{r.name}</span>
