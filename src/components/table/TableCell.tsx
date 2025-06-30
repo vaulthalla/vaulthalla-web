@@ -6,5 +6,5 @@ interface TableCellProps {
 }
 
 export const TableCell: React.FC<TableCellProps> = ({ className = '', children }) => (
-  <td className={`p-2 text-sm text-gray-300 ${className}`}>{children}</td>
+  <td className={`text-md p-2 text-gray-300 ${className}`}>{children}</td>
 )

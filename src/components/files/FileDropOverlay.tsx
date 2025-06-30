@@ -52,7 +52,7 @@ export const FileDropOverlay: React.FC<FileDropOverlayProps> = ({ onFiles, child
             animate={{ opacity: 0.5 }}
             exit={{ opacity: 0 }}
             className="absolute inset-0 z-10 border-4 border-dashed border-blue-400 bg-gray-700">
-            <div className="flex h-full items-center justify-center text-lg text-white">Drop files to upload</div>
+            <div className="flex w-full items-center justify-center text-lg text-white">Drop files to upload</div>
           </motion.div>
         )}
       </AnimatePresence>
