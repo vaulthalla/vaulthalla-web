@@ -6,14 +6,14 @@ import { useFSStore } from '@/stores/fsStore'
 import { FileDropOverlay } from '@/components/files/FileDropOverlay'
 
 const FilesClientPage = () => {
-  const { files } = useFSStore()
+  const { files, path } = useFSStore()
 
   if (!files) return <CircleNotchLoader />
 
   const processFiles = (files: File[]) => {
     const { uploadFile } = useFSStore.getState()
     ;(async () => {
-      for (const file of files) await uploadFile({ file })
+      for (const file of files) await uploadFile({ file, targetPath: path + '/' + file.name })
     })()
   }
 

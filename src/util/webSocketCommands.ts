@@ -151,7 +151,7 @@ export interface WebSocketCommandMap {
 
   'fs.dir.list': {
     payload: { vault_id: number; volume_id: number; path?: string | undefined }
-    response: { files: File[] }
+    response: { vault: string; path: string; files: File[] }
   }
 
   'fs.upload.start': { payload: IFileUpload; response: { upload_id: string } }

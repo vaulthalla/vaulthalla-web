@@ -19,6 +19,20 @@ interface FileSystemProps {
 export const FileSystem: React.FC<FileSystemProps> = ({ files, onNavigate }) => {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
 
+  const getSize = (file: File) => {
+    if (file.isDirectory) return '-'
+    if (file.currentVersionSizeBytes === 0) return '0 KB'
+    if (file.currentVersionSizeBytes < 1024) return `${file.currentVersionSizeBytes} B`
+    if (file.currentVersionSizeBytes < 1024 * 1024) return `${(file.currentVersionSizeBytes / 1024).toFixed(1)} KB`
+    if (file.currentVersionSizeBytes < 1024 * 1024 * 1024)
+      return `${(file.currentVersionSizeBytes / (1024 * 1024)).toFixed(1)} MB`
+    if (file.currentVersionSizeBytes < 1024 * 1024 * 1024 * 1024)
+      return `${(file.currentVersionSizeBytes / (1024 * 1024 * 1024)).toFixed(1)} GB`
+    if (file.currentVersionSizeBytes < 1024 * 1024 * 1024 * 1024 * 1024)
+      return `${(file.currentVersionSizeBytes / (1024 * 1024 * 1024 * 1024)).toFixed(1)} TB`
+    return `${(file.currentVersionSizeBytes / 1024).toFixed(1)} KB`
+  }
+
   return (
     <Card className="rounded-2xl border border-gray-700 bg-gray-900 shadow-lg">
       <CardContent className="p-0">
@@ -45,15 +59,15 @@ export const FileSystem: React.FC<FileSystemProps> = ({ files, onNavigate }) => 
                   onClick={() => file.isDirectory && onNavigate(file.fullPath ?? file.name)}>
                   <TableCell className="flex items-center gap-2 text-white">
                     {file.isDirectory ?
-                      <Folder size={16} />
-                    : <FileIcon size={16} />}
+                      <Folder className="text-primary fill-current" />
+                    : <FileIcon className="text-primary fill-current" />}
                     {file.name}
-                    {file.isDirectory && hoveredRow === (file.fullPath ?? file.name) && <ArrowRight size={16} />}
+                    {file.isDirectory && hoveredRow === (file.fullPath ?? file.name) && (
+                      <ArrowRight className="text-primary fill-current" />
+                    )}
                   </TableCell>
-                  <TableCell className="text-gray-300">
-                    {file.isDirectory ? '-' : `${(file.currentVersionSizeBytes / 1024).toFixed(1)} KB`}
-                  </TableCell>
-                  <TableCell className="text-gray-300">{new Date(file.updatedAt * 1000).toLocaleString()}</TableCell>
+                  <TableCell className="text-gray-300">{getSize(file)}</TableCell>
+                  <TableCell className="text-gray-300">{new Date(file.updatedAt).toLocaleString()}</TableCell>
                 </motion.tr>
               ))}
             </TableBody>

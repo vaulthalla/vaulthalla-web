@@ -122,7 +122,12 @@ export const useWebSocketStore = create<WebSocketStore>()(
                 handler(Promise.resolve(message.data ?? {}))
               }
             } else {
-              console.warn('[WS] No handler for requestId:', message.requestId)
+              if (message.status === 'error') {
+                if (message.error === 'unauthorized') {
+                  console.warn('[WS] Unauthorized request received, refreshing token...')
+                  await useAuthStore.getState().refreshToken()
+                } else console.warn('[WS] Error received without handler:', message.error)
+              }
             }
           } catch (err) {
             console.error('[WS] Failed to parse message', err)

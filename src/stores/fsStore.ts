@@ -20,8 +20,7 @@ interface FsStore {
   setCurrVault: (vault: Vault) => void
   setCurrVolume: (volume: Volume) => void
   setPath: (dir: string) => void
-  writeFile: (vaultPayload: WSCommandPayload<'fs.file.write'>) => Promise<void>
-  listDirectory: (vaultPayload: WSCommandPayload<'fs.dir.list'>) => Promise<File[]>
+  listDirectory: (payload: WSCommandPayload<'fs.dir.list'>) => Promise<DBFile[]>
 }
 
 export const useFSStore = create<FsStore>()(
@@ -51,6 +50,7 @@ export const useFSStore = create<FsStore>()(
             path: get().path,
           })
 
+          console.log(response.files)
           const files = response.files.map(file => new DBFile(file))
           set({ files })
         } catch (error) {
@@ -79,6 +79,8 @@ export const useFSStore = create<FsStore>()(
             size: file.size,
           })
 
+          console.log(startResp)
+
           const uploadId = startResp.upload_id
           if (!uploadId) throw new Error('Server did not return an upload_id')
 
@@ -98,11 +100,13 @@ export const useFSStore = create<FsStore>()(
           }
 
           // 3️⃣ Finish upload
-          await ws.sendCommand('fs.upload.finish', {
+          const res = await ws.sendCommand('fs.upload.finish', {
             vault_id: currVault.id,
             volume_id: currVolume.id,
             path: targetPath,
           })
+
+          console.log(res)
 
           console.log('[FsStore] Upload finished successfully')
           set({ uploading: false, uploadProgress: 100 })
@@ -129,24 +133,12 @@ export const useFSStore = create<FsStore>()(
         set({ path: dir })
       },
 
-      async writeFile(vaultPayload) {
+      async listDirectory({ vault_id, volume_id, path = get().path }) {
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
 
         try {
-          await ws.sendCommand('fs.file.write', vaultPayload)
-        } catch (error) {
-          console.error('Error writing file:', error)
-          throw error
-        }
-      },
-
-      async listDirectory(vaultPayload) {
-        const ws = useWebSocketStore.getState()
-        await ws.waitForConnection()
-
-        try {
-          const response = await ws.sendCommand('fs.dir.list', vaultPayload)
+          const response = await ws.sendCommand('fs.dir.list', { vault_id, volume_id, path })
           return response.files
         } catch (error) {
           console.error('Error listing directory:', error)
@@ -169,6 +161,8 @@ export const useFSStore = create<FsStore>()(
               if (localVault) state.setCurrVault(localVault)
               else console.warn('[FsStore] No local vault found during rehydration')
             }
+
+            if (!state.files || state.files.length === 0) await state.fetchFiles()
           } catch (err) {
             console.error('[FsStore] Rehydrate fetch failed:', err)
           }

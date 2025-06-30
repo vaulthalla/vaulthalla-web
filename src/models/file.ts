@@ -35,9 +35,24 @@ export class File implements IFile {
   trashedBy: number = 0
   fullPath?: string
 
-  constructor(init?: Partial<IFile>) {
+  constructor(init?: any) {
     if (init) {
-      Object.assign(this, init)
+      this.id = init.id
+      this.storageVolumeId = init.storage_volume_id
+      this.parentId = init.parent_id
+      this.name = init.name
+      this.isDirectory = init.is_directory
+      this.mode = init.mode
+      this.uid = init.uid
+      this.gid = init.gid
+      this.createdBy = init.created_by
+      this.createdAt = init.created_at
+      this.updatedAt = init.updated_at
+      this.currentVersionSizeBytes = init.current_version_size_bytes
+      this.isTrashed = init.is_trashed
+      this.trashedAt = init.trashed_at
+      this.trashedBy = init.trashed_by
+      this.fullPath = init.full_path
     }
   }
 

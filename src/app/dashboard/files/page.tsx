@@ -3,7 +3,7 @@ import FilesClientPage from '@/app/dashboard/files/page.client'
 const FilesPage = () => {
   return (
     <div>
-      <h1>File Manager</h1>
+      <h1 className="mb-4 text-center text-4xl">File Manager</h1>
       <FilesClientPage />
     </div>
   )
