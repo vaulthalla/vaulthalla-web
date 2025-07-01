@@ -47,7 +47,7 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
   )
 
   return (
-    <Card className="rounded-xl border border-gray-700 bg-gray-900/90 shadow-lg">
+    <Card className="min-h-[90vh] rounded-xl border border-gray-700 bg-gray-900/90 shadow-lg">
       <CardContent className="p-0">
         <ScrollArea className="h-full">
           <Table>
