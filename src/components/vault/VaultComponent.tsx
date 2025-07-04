@@ -3,7 +3,6 @@
 import * as motion from 'motion/react-client'
 import { Vault, LocalDiskStorage, S3Storage } from '@/models/vaults'
 import { useState } from 'react'
-import VolumesComponent from '@/components/volumes/VolumesComponent'
 import { Button } from '@/components/Button'
 
 interface VaultComponentProps {
@@ -64,8 +63,6 @@ export default function VaultComponent({ vault }: VaultComponentProps) {
           {JSON.stringify(vault, null, 2)}
         </motion.pre>
       )}
-
-      <VolumesComponent vault_id={vault.id} />
     </motion.div>
   )
 }

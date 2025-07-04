@@ -1,21 +1,55 @@
+interface Permission {
+  id: number
+  name: string
+  description?: string
+  category: string
+  bit_position: number
+  created_at: Date // ISO string from backend
+  updated_at: Date // ISO string from backend
+}
+
+interface PermissionOverride {
+  permission: Permission
+  is_file: boolean
+  enabled: boolean
+  regex: string
+}
+
+interface IUserRole {
+  id: number
+  name: string
+  description: string
+  permissions: Record<string, boolean>
+  created_at: Date
+}
+
+export class UserRole {
+  constructor(
+    public id: number,
+    public name: string,
+    public description: string = '',
+    public permissions: Record<string, boolean> = {},
+    public created_at: Date = new Date(),
+  ) {}
+
+  static fromData(data: IUserRole): UserRole {
+    return new UserRole(data.id, data.name, data.description || '', data.permissions || {}, new Date(data.created_at))
+  }
+}
+
 interface IRole {
   id: number
   role_id: number
   subject_id: number
   name: string
-  display_name: string
   description: string
-  scope: string
-  scope_id?: number
-  admin_permissions: Record<string, boolean>
-  vault_permissions: Record<string, boolean>
+  simple_permissions: boolean
   file_permissions: Record<string, boolean>
   directory_permissions: Record<string, boolean>
   created_at: Date // ISO string from backend
   assigned_at: Date
-  inherited: boolean
-
-  permissions: string[] // decoded permissions
+  permission_overrides: PermissionOverride[]
+  permissions: string[]
 }
 
 export class Role {
@@ -24,24 +58,18 @@ export class Role {
     public role_id: number,
     public subject_id: number,
     public name: string,
-    public display_name: string,
     public description: string = '',
-    public scope: string = '',
-    public scope_id?: number,
-    public admin_permissions: Record<string, boolean> = {},
-    public vault_permissions: Record<string, boolean> = {},
+    public simple_permissions: boolean = false,
     public file_permissions: Record<string, boolean> = {},
     public directory_permissions: Record<string, boolean> = {},
     public created_at: Date = new Date(),
     public assigned_at: Date = new Date(),
-    public inherited: boolean = false,
+    public permission_overrides: PermissionOverride[] = [],
     public permissions: string[] = [], // decoded permissions
   ) {}
 
   static fromData(data: IRole): Role {
     const combinedPerms = [
-      ...Object.keys(data.admin_permissions || {}).filter(k => data.admin_permissions[k]),
-      ...Object.keys(data.vault_permissions || {}).filter(k => data.vault_permissions[k]),
       ...Object.keys(data.file_permissions || {}).filter(k => data.file_permissions[k]),
       ...Object.keys(data.directory_permissions || {}).filter(k => data.directory_permissions[k]),
     ]
@@ -51,17 +79,13 @@ export class Role {
       data.role_id,
       data.subject_id,
       data.name,
-      data.display_name,
       data.description || '',
-      data.scope || '',
-      data.scope_id ?? undefined,
-      data.admin_permissions || {},
-      data.vault_permissions || {},
+      data.simple_permissions || false,
       data.file_permissions || {},
       data.directory_permissions || {},
       new Date(data.created_at),
       new Date(data.assigned_at),
-      data.inherited,
+      data.permission_overrides || [],
       combinedPerms,
     )
   }

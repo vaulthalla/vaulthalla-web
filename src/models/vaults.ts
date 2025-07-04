@@ -4,6 +4,8 @@ export class Vault {
   id: number
   name: string
   type: VaultType
+  ownerId: number
+  owner: string
   isActive: boolean
   createdAt: string
 
@@ -11,12 +13,16 @@ export class Vault {
     id: number = 0,
     name: string = '',
     type: VaultType = 'local',
+    ownerId: number = 0,
+    owner: string = '',
     isActive: boolean = true,
     createdAt: string = new Date().toISOString(),
   ) {
     this.id = id
     this.name = name
     this.type = type
+    this.ownerId = ownerId
+    this.owner = owner
     this.isActive = isActive
     this.createdAt = createdAt
   }
@@ -26,8 +32,16 @@ export class LocalDiskStorage extends Vault {
   vault_id: number
   mount_point: string
 
-  constructor(id: number, name: string, mount_point: string, isActive: boolean = true, createdAt?: string) {
-    super(id, name, 'local', isActive, createdAt)
+  constructor(
+    id: number = 0,
+    name: string = '',
+    mount_point: string = '',
+    isActive: boolean = true,
+    createdAt: string = new Date().toISOString(),
+    ownerId: number = 0,
+    owner: string = '',
+  ) {
+    super(id, name, 'local', ownerId, owner, isActive, createdAt)
     this.vault_id = id
     this.mount_point = mount_point
   }
@@ -42,17 +56,19 @@ export class S3Storage extends Vault {
   endpoint: string
 
   constructor(
-    id: number,
-    name: string,
-    bucket: string,
-    region: string,
-    accessKey: string,
-    secretAccessKey: string,
-    endpoint: string,
+    id: number = 0,
+    name: string = '',
+    bucket: string = '',
+    region: string = '',
+    accessKey: string = '',
+    secretAccessKey: string = '',
+    endpoint: string = '',
     isActive: boolean = true,
-    createdAt?: string,
+    createdAt: string = new Date().toISOString(),
+    ownerId: number = 0,
+    owner: string = '',
   ) {
-    super(id, name, 's3', isActive, createdAt)
+    super(id, name, 's3', ownerId, owner, isActive, createdAt)
     this.vault_id = id
     this.bucket = bucket
     this.region = region
@@ -68,7 +84,7 @@ export const toVaultArray = (vaults: any[]): Vault[] => {
     const createdAt = v.created_at ?? v.createdAt ?? new Date().toISOString()
 
     if (v.type === 'local') {
-      return new LocalDiskStorage(v.id, v.name, v.mount_point, isActive, createdAt)
+      return new LocalDiskStorage(v.id, v.name, v.mount_point, isActive, createdAt, v.owner_id, v.owner)
     }
 
     if (v.type === 's3') {
@@ -82,6 +98,8 @@ export const toVaultArray = (vaults: any[]): Vault[] => {
         v.endpoint,
         isActive,
         createdAt,
+        v.owner_id,
+        v.owner,
       )
     }
 

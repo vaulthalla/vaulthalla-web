@@ -3,22 +3,19 @@ import { useWebSocketStore } from '@/stores/useWebSocket'
 import { WSCommandPayload } from '@/util/webSocketCommands'
 import { File as DBFile } from '@/models/file'
 import { LocalDiskStorage, S3Storage, Vault } from '@/models/vaults'
-import { Volume } from '@/models/volumes'
 import { persist } from 'zustand/middleware'
 import { useVaultStore } from '@/stores/vaultStore'
-import { useVolumeStore } from '@/stores/volumeStore'
 
 interface FsStore {
   currVault: Vault | LocalDiskStorage | S3Storage | null
-  currVolume: Volume | null
   path: string
   uploading: boolean
   uploadProgress: number
   files: DBFile[]
   fetchFiles: () => Promise<void>
   uploadFile: ({ file, targetPath }: { file: File; targetPath?: string }) => Promise<void>
+  mkdir: (payload: WSCommandPayload<'fs.dir.create'>) => Promise<void>
   setCurrVault: (vault: Vault) => void
-  setCurrVolume: (volume: Volume) => void
   setPath: (dir: string) => void
   listDirectory: (payload: WSCommandPayload<'fs.dir.list'>) => Promise<DBFile[]>
 }
@@ -27,7 +24,6 @@ export const useFSStore = create<FsStore>()(
   persist(
     (set, get) => ({
       currVault: null,
-      currVolume: null,
       path: '',
       uploading: false,
       uploadProgress: 0,
@@ -37,18 +33,14 @@ export const useFSStore = create<FsStore>()(
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
 
-        const { currVault, currVolume } = get()
-        if (!currVault || !currVolume) {
-          console.warn('[FsStore] No current vault or volume set')
+        const { currVault } = get()
+        if (!currVault) {
+          console.warn('[FsStore] No current vault to set')
           return
         }
 
         try {
-          const response = await ws.sendCommand('fs.dir.list', {
-            vault_id: currVault.id,
-            volume_id: currVolume.id,
-            path: get().path,
-          })
+          const response = await ws.sendCommand('fs.dir.list', { vault_id: currVault.id, path: get().path })
 
           console.log(response.files)
           const files = response.files.map(file => new DBFile(file))
@@ -63,9 +55,9 @@ export const useFSStore = create<FsStore>()(
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
 
-        const { currVault, currVolume } = get()
-        if (!currVault || !currVolume) {
-          throw new Error('No current vault or volume selected')
+        const { currVault } = get()
+        if (!currVault) {
+          throw new Error('No current vault selected')
         }
 
         set({ uploading: true, uploadProgress: 0 })
@@ -74,7 +66,6 @@ export const useFSStore = create<FsStore>()(
           // 1️⃣ Start upload
           const startResp = await ws.sendCommand('fs.upload.start', {
             vault_id: currVault.id,
-            volume_id: currVolume.id,
             path: targetPath,
             size: file.size,
           })
@@ -100,11 +91,7 @@ export const useFSStore = create<FsStore>()(
           }
 
           // 3️⃣ Finish upload
-          const res = await ws.sendCommand('fs.upload.finish', {
-            vault_id: currVault.id,
-            volume_id: currVolume.id,
-            path: targetPath,
-          })
+          const res = await ws.sendCommand('fs.upload.finish', { vault_id: currVault.id, path: targetPath })
 
           console.log(res)
 
@@ -120,25 +107,34 @@ export const useFSStore = create<FsStore>()(
         }
       },
 
-      setCurrVault: vault => {
-        set({ currVault: vault })
-        useVolumeStore.getState().fetchVaultVolumes({ vault_id: vault.id })
+      async mkdir({ vault_id, path }) {
+        const ws = useWebSocketStore.getState()
+        await ws.waitForConnection()
+
+        try {
+          const response = await ws.sendCommand('fs.dir.create', { vault_id, path })
+          console.log('[FsStore] Directory created:', response.path)
+          await get().fetchFiles()
+        } catch (error) {
+          console.error('Error creating directory:', error)
+          throw error
+        }
       },
 
-      setCurrVolume: volume => {
-        set({ currVolume: volume })
+      setCurrVault: vault => {
+        set({ currVault: vault })
       },
 
       setPath: (dir: string) => {
         set({ path: dir })
       },
 
-      async listDirectory({ vault_id, volume_id, path = get().path }) {
+      async listDirectory({ vault_id, path = get().path }) {
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
 
         try {
-          const response = await ws.sendCommand('fs.dir.list', { vault_id, volume_id, path })
+          const response = await ws.sendCommand('fs.dir.list', { vault_id, path })
           return response.files
         } catch (error) {
           console.error('Error listing directory:', error)
@@ -148,7 +144,7 @@ export const useFSStore = create<FsStore>()(
     }),
     {
       name: 'vaulthalla-fs',
-      partialize: state => ({ currVault: state.currVault, currVolume: state.currVolume }),
+      partialize: state => ({ currVault: state.currVault }),
       onRehydrateStorage: state => {
         console.log('[FsStore] Rehydrated from storage')
         ;(async () => {

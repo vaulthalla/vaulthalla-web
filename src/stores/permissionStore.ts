@@ -2,13 +2,17 @@ import { create } from 'zustand'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 import { persist } from 'zustand/middleware'
 import { WSCommandPayload } from '@/util/webSocketCommands'
-import { Role } from '@/models/role'
+import { Role, UserRole } from '@/models/role'
 import { Permission } from '@/models/permission'
 
 interface PermissionStore {
   roles: Role[]
+  userRoles: UserRole[]
   permissions: Permission[]
+  setRoles: (roles: Role[]) => void
+  setUserRoles: (userRoles: UserRole[]) => void
   fetchRoles: () => Promise<void>
+  fetchUserRoles: () => Promise<void>
   fetchPermissions: () => Promise<void>
   addRole: (vaultPayload: WSCommandPayload<'role.add'>) => Promise<void>
   removeRole: (payload: WSCommandPayload<'role.delete'>) => Promise<void>
@@ -25,14 +29,25 @@ export const usePermsStore = create<PermissionStore>()(
   persist(
     (set, get) => ({
       roles: [],
+      userRoles: [],
       permissions: [],
+
+      setRoles: roles => set({ roles }),
+
+      setUserRoles: userRoles => set({ userRoles }),
 
       async fetchRoles() {
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
-        const response = await ws.sendCommand('roles.list', null)
-        console.log('response', response.roles)
-        set({ roles: response.roles.map(Role.fromData) })
+        const response = await ws.sendCommand('roles.list.vault', null)
+        set({ roles: response.roles })
+      },
+
+      async fetchUserRoles() {
+        const ws = useWebSocketStore.getState()
+        await ws.waitForConnection()
+        const response = await ws.sendCommand('roles.list.user', null)
+        set({ userRoles: response.roles.map(role => UserRole.fromData(role)) })
       },
 
       async fetchPermissions() {
@@ -87,7 +102,7 @@ export const usePermsStore = create<PermissionStore>()(
     }),
     {
       name: 'vaulthalla-permissions',
-      partialize: state => ({ roles: state.roles, permissions: state.permissions }),
+      partialize: state => ({ roles: state.roles, userRoles: state.userRoles, permissions: state.permissions }),
       onRehydrateStorage: state => {
         console.log('[PermissionStore] Rehydrating...')
         return async storedState => {
@@ -97,7 +112,17 @@ export const usePermsStore = create<PermissionStore>()(
             console.log('[PermissionStore] WebSocket connected. Re-fetching roles and permissions...')
 
             await state?.fetchRoles?.()
+            await state?.fetchUserRoles?.()
             await state?.fetchPermissions?.()
+
+            // Force normalization
+            if (storedState?.userRoles)
+              state.setUserRoles(
+                Array.isArray(storedState.userRoles) ? storedState.userRoles : Object.values(storedState.userRoles),
+              )
+
+            if (storedState?.roles)
+              state.setRoles(Array.isArray(storedState.roles) ? storedState.roles : Object.values(storedState.roles))
 
             console.log('[PermissionStore] Roles and permissions fetch complete')
           } catch (err) {

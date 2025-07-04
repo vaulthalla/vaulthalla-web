@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { vaulthallaQuotes } from '@/util/quotes'
 
 interface LoginFormValues {
-  email: string
+  name: string
   password: string
 }
 
@@ -36,7 +36,7 @@ const LoginForm = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setError('')
     try {
-      await login(data.email, data.password)
+      await login({ name: data.name, password: data.password })
       if (useAuthStore.getState().token) router.push('/dashboard')
       else setError('Login failed')
     } catch (err) {
@@ -66,13 +66,13 @@ const LoginForm = () => {
         <h2 className="text-center text-2xl font-bold">Login to Vaulthalla</h2>
 
         <input
-          type="email"
-          placeholder="Enter your email"
-          autoComplete="email"
-          {...register('email', { required: 'Email is required' })}
+          type="text"
+          placeholder="Enter your username"
+          autoComplete="username"
+          {...register('name', { required: 'Username is required' })}
           className="w-full rounded border px-3 py-2 dark:bg-gray-700"
         />
-        {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+        {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
 
         <input
           type="password"

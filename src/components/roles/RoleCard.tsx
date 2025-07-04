@@ -1,17 +1,22 @@
-'use client'
-
-import { Role } from '@/models/role'
+import { Role, UserRole } from '@/models/role'
 import { motion } from 'framer-motion'
-import { permissionCategoryMap, permissionIconMap } from '@/util/icons/permissionIconMap'
+import { permissionIconMap } from '@/util/icons/permissionIconMap'
+import { prettifySnakeCase } from '@/util/prettifySnakeCase'
 
-const RoleCard = (role: Role) => {
-  const categorizedPerms: Record<string, string[]> = { Admin: [], Vault: [], File: [], Directory: [] }
+const RoleCard = (role: Role | UserRole) => {
+  const categorizedPerms: Record<string, string[]> = {}
 
-  for (const perm of role.permissions) {
-    const category = permissionCategoryMap[perm]
-    if (category) {
-      categorizedPerms[category].push(perm)
-    }
+  if (role instanceof UserRole) {
+    categorizedPerms['User Permissions'] = Object.keys(role.permissions).filter(p => role.permissions[p])
+  } else if (role.file_permissions !== undefined && role.directory_permissions !== undefined) {
+    // Advanced Role: file + dir split
+    categorizedPerms.File = Object.keys(role.file_permissions).filter(p => role.file_permissions[p])
+    categorizedPerms.Directory = Object.keys(role.directory_permissions).filter(p => role.directory_permissions[p])
+  } else if (role.permissions !== undefined) {
+    // Simple Role (but not UserRole)
+    categorizedPerms['Unified File/Directory Permissions'] = Object.keys(role.permissions).filter(
+      p => role.permissions[p],
+    )
   }
 
   const Tooltip = ({ children, label }: { children: React.ReactNode; label: string }) => (
@@ -35,7 +40,7 @@ const RoleCard = (role: Role) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       className="mb-4 rounded-2xl border border-white/10 bg-white/10 p-5 shadow-xl backdrop-blur-md transition hover:scale-[1.01]">
-      <h3 className="mb-1 text-xl font-semibold text-white">{role.display_name}</h3>
+      <h3 className="mb-1 text-xl font-semibold text-white">{prettifySnakeCase(role.name)}</h3>
       <p className="mb-4 text-sm text-white/70">{role.description || 'No description provided'}</p>
 
       <div className="space-y-4">

@@ -3,9 +3,11 @@
 import { User } from '@/models/user'
 import { motion } from 'framer-motion'
 import { getUserIcon } from '@/util/icons/getUserIcon'
+import { prettifySnakeCase } from '@/util/prettifySnakeCase'
 
 const UserCard = (user: User) => {
-  const Icon = getUserIcon(user.global_role.display_name)
+  const roleName = prettifySnakeCase(user.role.name)
+  const Icon = getUserIcon(roleName)
 
   return (
     <motion.div
@@ -21,10 +23,10 @@ const UserCard = (user: User) => {
       <div className="text-md space-y-1 text-gray-300">
         <div className="flex w-full items-center justify-between">
           <p>
-            <span className="font-medium text-gray-400">Email:</span> {user.email}
+            <span className="font-medium text-gray-400">Email:</span> {user.email ?? 'N/A'}
           </p>
           <p>
-            <span className="font-medium text-gray-400">Role:</span> {user.global_role.display_name}
+            <span className="font-medium text-gray-400">Role:</span> {roleName}
           </p>
         </div>
 

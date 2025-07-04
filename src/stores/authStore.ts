@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { getErrorMessage } from '@/util/handleErrors'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 import { User } from '@/models/user'
+import { WSCommandPayload } from '@/util/webSocketCommands'
 
 let refreshAttempts = 0
 const MAX_REFRESH_RETRIES = 3
@@ -14,7 +15,7 @@ interface AuthState {
   error: string | null
 
   setTokenCookie: (token: string | null) => void
-  login: (email: string, password: string) => Promise<void>
+  login: (payload: WSCommandPayload<'auth.login'>) => Promise<void>
   registerUser: (name: string, email: string, password: string, is_active: boolean, role: string) => Promise<void>
   updateUser: (id: number, data: Partial<User>) => Promise<void>
   changePassword: (id: number, old_password: string, new_password: string) => Promise<void>
@@ -43,11 +44,11 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      login: async (email, password) => {
+      login: async ({ name, password }) => {
         set({ loading: true, error: null })
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
-          const response = await sendCommand('auth.login', { email, password })
+          const response = await sendCommand('auth.login', { name, password })
 
           set({ token: response.token, user: response.user })
           get().setTokenCookie(response.token)

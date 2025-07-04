@@ -1,8 +1,7 @@
 import { Vault } from '@/models/vaults'
-import { Volume } from '@/models/volumes'
 import { APIKey } from '@/models/apiKey'
 import { User } from '@/models/user'
-import { Role } from '@/models/role'
+import { Role, UserRole } from '@/models/role'
 import { Permission } from '@/models/permission'
 import { Settings } from '@/models/settings'
 import { Group } from '@/models/group'
@@ -10,7 +9,7 @@ import { File, IFileUpload } from '@/models/file'
 
 export interface WebSocketCommandMap {
   // Auth
-  'auth.login': { payload: { email: string; password: string }; response: { token: string; user: User } }
+  'auth.login': { payload: { name: string; password: string }; response: { token: string; user: User } }
 
   'auth.register': {
     payload: { name: string; email: string; password: string; is_active?: boolean; role?: string }
@@ -54,23 +53,6 @@ export interface WebSocketCommandMap {
 
   'storage.vault.get': { payload: { id: number }; response: { vault: Vault } }
 
-  // Volume commands
-
-  'storage.volume.list': { payload: { vault_id: number }; response: { volumes: string } }
-
-  'storage.volume.list.user': { payload: { user_id: number }; response: { volumes: string } }
-
-  'storage.volume.list.vault': { payload: { vault_id: number }; response: { volumes: string } }
-
-  'storage.volume.add': {
-    payload: { user_id: number; vault_id: number; name: string; path_prefix?: string; quota_bytes?: number | null }
-    response: null
-  }
-
-  'storage.volume.remove': { payload: { volume_id: number }; response: null }
-
-  'storage.volume.get': { payload: { volume_id: number }; response: { volume: Volume } }
-
   // API Key commands
 
   'storage.apiKey.list': { payload: null; response: { keys: string } }
@@ -107,6 +89,10 @@ export interface WebSocketCommandMap {
   'role.get.byName': { payload: { name: string }; response: { role: Role } }
 
   'roles.list': { payload: null; response: { roles: Role[] } }
+
+  'roles.list.vault': { payload: null; response: { roles: Role[] } }
+
+  'roles.list.user': { payload: null; response: { roles: UserRole[] } }
 
   'permission.get': { payload: { id: number }; response: { permission: Permission } }
 
@@ -149,8 +135,10 @@ export interface WebSocketCommandMap {
 
   // FS commands
 
+  'fs.dir.create': { payload: { vault_id: number; path: string }; response: { path: string } }
+
   'fs.dir.list': {
-    payload: { vault_id: number; volume_id: number; path?: string | undefined }
+    payload: { vault_id: number; path?: string | undefined }
     response: { vault: string; path: string; files: File[] }
   }
 
@@ -158,10 +146,7 @@ export interface WebSocketCommandMap {
 
   'fs.upload.finish': { payload: Partial<IFileUpload>; response: { path: string } }
 
-  'fs.file.write': {
-    payload: { vault_id: number; volume_id: number; path: string; content: string }
-    response: { success: boolean }
-  }
+  'fs.file.write': { payload: { vault_id: number; path: string; content: string }; response: { success: boolean } }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']

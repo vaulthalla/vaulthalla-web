@@ -25,8 +25,7 @@ export const useVaultStore = create<VaultStore>()(
         await ws.waitForConnection()
 
         const response = await ws.sendCommand('storage.vault.list', null)
-
-        const vaults = toVaultArray(JSON.parse(response.vaults))
+        const vaults = toVaultArray(response.vaults)
 
         set({ vaults })
       },

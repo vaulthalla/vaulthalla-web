@@ -63,7 +63,6 @@ export class File implements IFile {
 
 export interface IFileUpload {
   vault_id: number
-  volume_id: number
   path: string
   size?: number
 }

@@ -39,6 +39,9 @@ const VaultCard = (vault: Vault) => {
 
       <div className="text-md mt-4 text-gray-50">
         <p>
+          <span className="font-medium text-gray-300">Owner:</span> {vault.owner}
+        </p>
+        <p>
           <span className="font-medium text-gray-300">Type:</span> {getType(vault.type)}
         </p>
         <p>

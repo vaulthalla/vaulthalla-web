@@ -1,16 +1,21 @@
-'use client'
-
-import { usePermsStore } from '@/stores/permissionStore'
-import RoleCard from '@/components/roles/RoleCard'
 import Link from 'next/link'
 import { Button } from '@/components/Button'
+import RoleCard from '@/components/roles/RoleCard'
+import { Role, UserRole } from '@/models/role'
+import { usePathname } from 'next/navigation'
+import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
 
-const RolesClientPage = () => {
-  const { roles } = usePermsStore()
+const RolesComponent = ({ roles }: { roles: Role[] | UserRole[] }) => {
+  const path = usePathname()
+  const isUserRole = path.endsWith('/user')
+
+  const title = isUserRole ? 'Manage User Roles' : 'Manage Vault Roles'
+
+  if (!roles) return <CircleNotchLoader />
 
   return (
     <div className="h-full w-full px-6 py-8">
-      <h1 className="text-center text-3xl font-bold text-white">Manage Roles</h1>
+      <h1 className="text-center text-3xl font-bold text-white">{title}</h1>
       <Link href="/dashboard/roles/add">
         <Button type="button" className="my-6">
           + Add Role
@@ -30,4 +35,4 @@ const RolesClientPage = () => {
   )
 }
 
-export default RolesClientPage
+export default RolesComponent

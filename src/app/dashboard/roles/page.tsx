@@ -1,5 +1,5 @@
-import RolesClientPage from '@/app/dashboard/roles/page.client'
+import { redirect } from 'next/navigation'
 
-const RolesPage = () => <RolesClientPage />
+const RolesPage = () => redirect('/dashboard/roles/user')
 
 export default RolesPage
