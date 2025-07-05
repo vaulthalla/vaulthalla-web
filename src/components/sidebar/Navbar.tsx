@@ -12,6 +12,9 @@ import Sliders from '@/fa-duotone/sliders.svg'
 import ShieldKeyhole from '@/fa-duotone/shield-keyhole.svg'
 import CaretDown from '@/fa-duotone/caret-down.svg'
 import FolderPlus from '@/fa-duotone/folder-plus.svg'
+import UserShield from '@/fa-duotone/user-shield.svg'
+import VaultShield from '@/fa-duotone/file-shield.svg'
+
 import { FC, SVGProps } from 'react'
 
 interface navItem {
@@ -37,8 +40,8 @@ const Navbar = ({ isCollapsed }: NavbarProps) => {
       href: '/dashboard/roles',
       icon: ShieldKeyhole,
       subItems: [
-        { label: 'User Roles', href: '/dashboard/roles/user', icon: ShieldKeyhole },
-        { label: 'Vault Roles', href: '/dashboard/roles/vault', icon: ShieldKeyhole },
+        { label: 'User Roles', href: '/dashboard/roles/user', icon: UserShield },
+        { label: 'Vault Roles', href: '/dashboard/roles/vault', icon: VaultShield },
       ],
     },
     { label: 'Groups', href: '/dashboard/groups', icon: PeopleGroup },

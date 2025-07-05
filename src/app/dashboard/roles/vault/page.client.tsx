@@ -4,8 +4,8 @@ import { usePermsStore } from '@/stores/permissionStore'
 import RolesComponent from '@/components/roles/RolesComponent'
 
 const VaultRolesClientPage = () => {
-  const { roles } = usePermsStore()
-  return <RolesComponent roles={roles} />
+  const { vaultRoles } = usePermsStore()
+  return <RolesComponent roles={vaultRoles} />
 }
 
 export default VaultRolesClientPage

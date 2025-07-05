@@ -1,23 +1,13 @@
-import { Role, UserRole } from '@/models/role'
+import { VaultRole, UserRole } from '@/models/role'
 import { motion } from 'framer-motion'
 import { permissionIconMap } from '@/util/icons/permissionIconMap'
 import { prettifySnakeCase } from '@/util/prettifySnakeCase'
 
-const RoleCard = (role: Role | UserRole) => {
+const RoleCard = (role: VaultRole | UserRole) => {
   const categorizedPerms: Record<string, string[]> = {}
 
-  if (role instanceof UserRole) {
-    categorizedPerms['User Permissions'] = Object.keys(role.permissions).filter(p => role.permissions[p])
-  } else if (role.file_permissions !== undefined && role.directory_permissions !== undefined) {
-    // Advanced Role: file + dir split
-    categorizedPerms.File = Object.keys(role.file_permissions).filter(p => role.file_permissions[p])
-    categorizedPerms.Directory = Object.keys(role.directory_permissions).filter(p => role.directory_permissions[p])
-  } else if (role.permissions !== undefined) {
-    // Simple Role (but not UserRole)
-    categorizedPerms['Unified File/Directory Permissions'] = Object.keys(role.permissions).filter(
-      p => role.permissions[p],
-    )
-  }
+  if (role.type === 'user') categorizedPerms['User Permissions'] = Object.keys(role.permissions)
+  else categorizedPerms['Vault Permissions'] = Object.keys(role.permissions)
 
   const Tooltip = ({ children, label }: { children: React.ReactNode; label: string }) => (
     <div className="group relative">
@@ -55,7 +45,7 @@ const RoleCard = (role: Role | UserRole) => {
                   return Icon ?
                       <Tooltip key={index} label={label}>
                         <Icon
-                          className="text-glow-orange fill-current text-xl transition-transform hover:scale-110"
+                          className={`${role.permissions[perm] ? 'text-glow-orange' : 'text-muted'} fill-current text-xl transition-transform hover:scale-110`}
                           aria-label={label}
                         />
                       </Tooltip>

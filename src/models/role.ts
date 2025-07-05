@@ -1,92 +1,106 @@
-interface Permission {
+// Permission definition (as returned from API / DB)
+export interface Permission {
   id: number
   name: string
-  description?: string
-  category: string
+  description: string
+  category: 'user' | 'vault'
   bit_position: number
-  created_at: Date // ISO string from backend
-  updated_at: Date // ISO string from backend
+  created_at: string
+  updated_at: string
 }
 
-interface PermissionOverride {
+// Permission override on a vault role
+export interface PermissionOverride {
   permission: Permission
-  is_file: boolean
   enabled: boolean
   regex: string
 }
 
-interface IUserRole {
-  id: number
+// Base role structure (used for both user + vault roles)
+export interface IRole {
+  role_id: number
   name: string
   description: string
-  permissions: Record<string, boolean>
-  created_at: Date
+  type: 'user' | 'vault'
+  permissions: Record<string, boolean> // decoded mask
+  created_at: string
 }
 
+// User role assignment
+export interface IUserRole extends IRole {
+  assignment_id: number
+  user_id: number
+  assigned_at: string
+}
+
+// Vault role assignment
+export interface IVaultRole extends IRole {
+  assignment_id: number
+  vault_id: number
+  subject_type: 'user' | 'group'
+  subject_id: number
+  assigned_at: string
+  permission_overrides: PermissionOverride[]
+}
+
+// UserRole class
 export class UserRole {
   constructor(
-    public id: number,
+    public role_id: number,
     public name: string,
-    public description: string = '',
-    public permissions: Record<string, boolean> = {},
-    public created_at: Date = new Date(),
+    public description: string,
+    public permissions: Record<string, boolean>,
+    public created_at: Date,
+    public assignment_id: number,
+    public user_id: number,
+    public assigned_at: Date,
+    public type: 'user' = 'user',
   ) {}
 
   static fromData(data: IUserRole): UserRole {
-    return new UserRole(data.id, data.name, data.description || '', data.permissions || {}, new Date(data.created_at))
+    return new UserRole(
+      data.role_id,
+      data.name,
+      data.description,
+      data.permissions,
+      new Date(data.created_at),
+      data.assignment_id,
+      data.user_id,
+      new Date(data.assigned_at),
+    )
   }
 }
 
-interface IRole {
-  id: number
-  role_id: number
-  subject_id: number
-  name: string
-  description: string
-  simple_permissions: boolean
-  file_permissions: Record<string, boolean>
-  directory_permissions: Record<string, boolean>
-  created_at: Date // ISO string from backend
-  assigned_at: Date
-  permission_overrides: PermissionOverride[]
-  permissions: string[]
-}
-
-export class Role {
+// VaultRole class
+export class VaultRole {
   constructor(
-    public id: number,
     public role_id: number,
-    public subject_id: number,
     public name: string,
-    public description: string = '',
-    public simple_permissions: boolean = false,
-    public file_permissions: Record<string, boolean> = {},
-    public directory_permissions: Record<string, boolean> = {},
-    public created_at: Date = new Date(),
-    public assigned_at: Date = new Date(),
-    public permission_overrides: PermissionOverride[] = [],
-    public permissions: string[] = [], // decoded permissions
+    public description: string,
+    public permissions: Record<string, boolean>,
+    public created_at: Date,
+    public assignment_id: number,
+    public vault_id: number,
+    public subject_type: 'user' | 'group',
+    public subject_id: number,
+    public assigned_at: Date,
+    public permission_overrides: PermissionOverride[],
+    public type: 'vault' = 'vault',
   ) {}
 
-  static fromData(data: IRole): Role {
-    const combinedPerms = [
-      ...Object.keys(data.file_permissions || {}).filter(k => data.file_permissions[k]),
-      ...Object.keys(data.directory_permissions || {}).filter(k => data.directory_permissions[k]),
-    ]
-
-    return new Role(
-      data.id,
+  static fromData(data: IVaultRole): VaultRole {
+    return new VaultRole(
       data.role_id,
-      data.subject_id,
       data.name,
-      data.description || '',
-      data.simple_permissions || false,
-      data.file_permissions || {},
-      data.directory_permissions || {},
+      data.description,
+      data.permissions,
       new Date(data.created_at),
+      data.assignment_id,
+      data.vault_id,
+      data.subject_type,
+      data.subject_id,
       new Date(data.assigned_at),
       data.permission_overrides || [],
-      combinedPerms,
     )
   }
 }

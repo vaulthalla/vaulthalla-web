@@ -2,52 +2,46 @@ import { create } from 'zustand'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 import { persist } from 'zustand/middleware'
 import { WSCommandPayload } from '@/util/webSocketCommands'
-import { Role, UserRole } from '@/models/role'
+import { UserRole, VaultRole } from '@/models/role'
 import { Permission } from '@/models/permission'
 
 interface PermissionStore {
-  roles: Role[]
   userRoles: UserRole[]
+  vaultRoles: VaultRole[]
   permissions: Permission[]
-  setRoles: (roles: Role[]) => void
-  setUserRoles: (userRoles: UserRole[]) => void
-  fetchRoles: () => Promise<void>
+  fetchVaultRoles: () => Promise<void>
   fetchUserRoles: () => Promise<void>
   fetchPermissions: () => Promise<void>
-  addRole: (vaultPayload: WSCommandPayload<'role.add'>) => Promise<void>
+  addRole: (payload: WSCommandPayload<'role.add'>) => Promise<void>
   removeRole: (payload: WSCommandPayload<'role.delete'>) => Promise<void>
   updateRole: (payload: WSCommandPayload<'role.update'>) => Promise<void>
-  getRole: (payload: WSCommandPayload<'role.get'>) => Promise<Role | null | undefined>
-  getRoleByName: (payload: WSCommandPayload<'role.get.byName'>) => Promise<Role | null | undefined>
+  getRole: (payload: WSCommandPayload<'role.get'>) => Promise<UserRole | VaultRole | null | undefined>
+  getRoleByName: (payload: WSCommandPayload<'role.get.byName'>) => Promise<UserRole | VaultRole | null | undefined>
   getPermission: (payload: WSCommandPayload<'permission.get'>) => Promise<Permission | null | undefined>
   getPermissionByName: (payload: WSCommandPayload<'permission.get.byName'>) => Promise<Permission | null | undefined>
   getPermissions: () => Promise<Permission[]>
-  getRoles: () => Promise<Role[]>
 }
 
 export const usePermsStore = create<PermissionStore>()(
   persist(
     (set, get) => ({
-      roles: [],
+      vaultRoles: [],
       userRoles: [],
       permissions: [],
 
-      setRoles: roles => set({ roles }),
-
-      setUserRoles: userRoles => set({ userRoles }),
-
-      async fetchRoles() {
+      async fetchVaultRoles() {
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
         const response = await ws.sendCommand('roles.list.vault', null)
-        set({ roles: response.roles })
+        set({ vaultRoles: response.roles })
       },
 
       async fetchUserRoles() {
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
         const response = await ws.sendCommand('roles.list.user', null)
-        set({ userRoles: response.roles.map(role => UserRole.fromData(role)) })
+        console.log(response.roles)
+        set({ userRoles: response.roles })
       },
 
       async fetchPermissions() {
@@ -57,30 +51,48 @@ export const usePermsStore = create<PermissionStore>()(
         set({ permissions: response.permissions.map(Permission.fromData) })
       },
 
-      async addRole(vaultPayload) {
+      async addRole(payload) {
         const sendCommand = useWebSocketStore.getState().sendCommand
-        const response = await sendCommand('role.add', vaultPayload)
-        set(state => ({ roles: [...state.roles, Role.fromData(response.role)] }))
+        await sendCommand('role.add', payload)
+
+        if (payload.type === 'vault') await this.fetchVaultRoles()
+        else if (payload.type === 'user') await this.fetchUserRoles()
       },
 
       async removeRole({ id }) {
         const sendCommand = useWebSocketStore.getState().sendCommand
         await sendCommand('role.delete', { id })
-        set(state => ({ roles: state.roles.filter(r => r.id !== id) }))
+
+        set(state => ({
+          vaultRoles: state.vaultRoles.filter(r => r.role_id !== id),
+          userRoles: state.userRoles.filter(r => r.role_id !== id),
+        }))
       },
 
       async updateRole(payload) {
         const sendCommand = useWebSocketStore.getState().sendCommand
-        const response = await sendCommand('role.update', payload)
-        set(state => ({ roles: state.roles.map(r => (r.id === response.role.id ? Role.fromData(response.role) : r)) }))
+        await sendCommand('role.update', payload)
+
+        if (payload.type === 'vault') await this.fetchVaultRoles()
+        else if (payload.type === 'user') await this.fetchUserRoles()
       },
 
       async getRole({ id }) {
-        return get().roles.find(r => r.id === id) || null
+        const role = get().vaultRoles.find(r => r.role_id === id) || get().userRoles.find(r => r.role_id === id)
+        if (role) return role
+
+        const sendCommand = useWebSocketStore.getState().sendCommand
+        const response = await sendCommand('role.get', { id })
+        return response.role
       },
 
       async getRoleByName({ name }) {
-        return get().roles.find(r => r.name === name) || null
+        const role = get().vaultRoles.find(r => r.name === name) || get().userRoles.find(r => r.name === name)
+        if (role) return role
+
+        const sendCommand = useWebSocketStore.getState().sendCommand
+        const response = await sendCommand('role.get.byName', { name })
+        return response.role
       },
 
       async getPermission({ id }) {
@@ -91,38 +103,26 @@ export const usePermsStore = create<PermissionStore>()(
         return get().permissions.find(p => p.name === name) || null
       },
 
-      async getRoles() {
-        await get().fetchRoles()
-        return get().roles
-      },
-
       async getPermissions() {
         return get().permissions
       },
     }),
     {
       name: 'vaulthalla-permissions',
-      partialize: state => ({ roles: state.roles, userRoles: state.userRoles, permissions: state.permissions }),
+      partialize: state => ({
+        vaultRoles: state.vaultRoles,
+        userRoles: state.userRoles,
+        permissions: state.permissions,
+      }),
       onRehydrateStorage: state => {
         console.log('[PermissionStore] Rehydrating...')
-        return async storedState => {
+        return async () => {
           try {
-            console.log('[PermissionStore] Waiting for WebSocket connection...')
             await useWebSocketStore.getState().waitForConnection()
-            console.log('[PermissionStore] WebSocket connected. Re-fetching roles and permissions...')
 
-            await state?.fetchRoles?.()
+            await state?.fetchVaultRoles()
             await state?.fetchUserRoles?.()
             await state?.fetchPermissions?.()
-
-            // Force normalization
-            if (storedState?.userRoles)
-              state.setUserRoles(
-                Array.isArray(storedState.userRoles) ? storedState.userRoles : Object.values(storedState.userRoles),
-              )
-
-            if (storedState?.roles)
-              state.setRoles(Array.isArray(storedState.roles) ? storedState.roles : Object.values(storedState.roles))
 
             console.log('[PermissionStore] Roles and permissions fetch complete')
           } catch (err) {

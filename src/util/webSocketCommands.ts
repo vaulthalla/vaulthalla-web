@@ -1,7 +1,7 @@
 import { Vault } from '@/models/vaults'
 import { APIKey } from '@/models/apiKey'
 import { User } from '@/models/user'
-import { Role, UserRole } from '@/models/role'
+import { VaultRole, UserRole, IRole } from '@/models/role'
 import { Permission } from '@/models/permission'
 import { Settings } from '@/models/settings'
 import { Group } from '@/models/group'
@@ -78,19 +78,19 @@ export interface WebSocketCommandMap {
 
   // Roles and Permissions
 
-  'role.add': { payload: Partial<Role>; response: { role: Role } }
+  'role.add': { payload: Partial<VaultRole | UserRole>; response: { role: VaultRole | UserRole } }
 
   'role.delete': { payload: { id: number }; response: null }
 
-  'role.update': { payload: Partial<Role>; response: { role: Role } }
+  'role.update': { payload: Partial<IRole | VaultRole | UserRole>; response: { role: VaultRole | UserRole } }
 
-  'role.get': { payload: { id: number }; response: { role: Role } }
+  'role.get': { payload: { id: number }; response: { role: VaultRole | UserRole } }
 
-  'role.get.byName': { payload: { name: string }; response: { role: Role } }
+  'role.get.byName': { payload: { name: string }; response: { role: VaultRole | UserRole } }
 
-  'roles.list': { payload: null; response: { roles: Role[] } }
+  'roles.list': { payload: null; response: { roles: (VaultRole | UserRole)[] } }
 
-  'roles.list.vault': { payload: null; response: { roles: Role[] } }
+  'roles.list.vault': { payload: null; response: { roles: VaultRole[] } }
 
   'roles.list.user': { payload: null; response: { roles: UserRole[] } }
 
