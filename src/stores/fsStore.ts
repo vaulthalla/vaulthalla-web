@@ -121,12 +121,14 @@ export const useFSStore = create<FsStore>()(
         }
       },
 
-      setCurrVault: vault => {
+      async setCurrVault(vault) {
         set({ currVault: vault })
+        await get().fetchFiles()
       },
 
-      setPath: (dir: string) => {
+      async setPath(dir) {
         set({ path: dir })
+        await get().fetchFiles()
       },
 
       async listDirectory({ vault_id, path = get().path }) {
@@ -144,7 +146,7 @@ export const useFSStore = create<FsStore>()(
     }),
     {
       name: 'vaulthalla-fs',
-      partialize: state => ({ currVault: state.currVault }),
+      partialize: state => ({ currVault: state.currVault, path: state.path }),
       onRehydrateStorage: state => {
         console.log('[FsStore] Rehydrated from storage')
         ;(async () => {

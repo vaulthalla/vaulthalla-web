@@ -1,4 +1,3 @@
-// FileSystem.tsx — minor polish, added Owner & Perm columns and refined Tailwind spacing
 'use client'
 
 import React, { useMemo, useState, memo } from 'react'
@@ -11,8 +10,16 @@ import { ScrollArea } from '@/components/ScrollArea'
 import { CardContent } from '@/components/card/CardContent'
 import { Card } from '@/components/card/Card'
 import type { File as FileModel } from '@/models/file'
+import { Directory } from '@/models/directory'
 
-const formatSize = (bytes: number, isDir: boolean): string => {
+const isDirectory = (file: FileModel | Directory): file is Directory => {
+  return (file as Directory).stats !== undefined
+}
+
+const formatSize = (item: FileModel | Directory): string => {
+  const isDir = isDirectory(item)
+  const bytes = isDir ? item.stats?.size_bytes : item.size_bytes
+
   if (isDir) return '-'
   if (!bytes) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
@@ -22,7 +29,7 @@ const formatSize = (bytes: number, isDir: boolean): string => {
 }
 
 interface FileSystemProps {
-  files: FileModel[]
+  files: (FileModel | Directory)[]
   onNavigate: (path: string) => void
 }
 
@@ -32,15 +39,13 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
   const rows = useMemo(
     () =>
       files.map(f => ({
-        key: f.fullPath ?? f.name,
+        key: f.path ?? f.name,
         icon:
-          f.isDirectory ?
+          isDirectory(f) ?
             <Folder className="text-primary fill-current" />
           : <FileIcon className="text-primary fill-current" />,
-        size: formatSize(f.currentVersionSizeBytes, f.isDirectory),
-        modified: new Date(f.updatedAt).toLocaleString(),
-        perms: f.mode,
-        owner: f.uid,
+        size: formatSize(f), // TODO handle directories
+        modified: new Date(f.updated_at).toLocaleString(),
         ...f,
       })),
     [files],
@@ -55,9 +60,7 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
               <TableRow className="bg-gray-800/50">
                 <TableHead className="w-1/2 pl-6 text-gray-300">Name</TableHead>
                 <TableHead className="w-1/10 text-gray-300">Size</TableHead>
-                <TableHead className="w-1/10 text-gray-300">Owner</TableHead>
-                <TableHead className="w-1/10 text-gray-300">Perms</TableHead>
-                <TableHead className="w-1/3 text-gray-300">Modified</TableHead>
+                <TableHead className="w-1/4 text-gray-300">Owner</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -73,14 +76,12 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
                   className="cursor-pointer border-b border-gray-800/60 transition-colors hover:bg-gray-800/70">
                   <TableCell
                     className="flex items-center gap-2 pl-2 text-white"
-                    onClick={() => r.isDirectory && onNavigate(r.fullPath ?? r.name)}>
+                    onClick={() => isDirectory(r) && onNavigate(r.path ?? r.name)}>
                     {r.icon}
                     <span className="max-w-[260px] truncate select-none">{r.name}</span>
-                    {r.isDirectory && hovered === r.key && <ArrowRight className="text-primary ml-1 h-4 w-4" />}
+                    {isDirectory(r) && hovered === r.key && <ArrowRight className="text-primary ml-1 h-4 w-4" />}
                   </TableCell>
                   <TableCell className="text-gray-200">{r.size}</TableCell>
-                  <TableCell className="text-gray-200">{r.owner}</TableCell>
-                  <TableCell className="font-mono text-red-400">{r.perms}</TableCell>
                   <TableCell className="text-gray-300">{r.modified}</TableCell>
                 </motion.tr>
               ))}

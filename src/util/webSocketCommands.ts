@@ -6,6 +6,7 @@ import { Permission } from '@/models/permission'
 import { Settings } from '@/models/settings'
 import { Group } from '@/models/group'
 import { File, IFileUpload } from '@/models/file'
+import { Directory } from '@/models/directory'
 
 export interface WebSocketCommandMap {
   // Auth
@@ -139,7 +140,7 @@ export interface WebSocketCommandMap {
 
   'fs.dir.list': {
     payload: { vault_id: number; path?: string | undefined }
-    response: { vault: string; path: string; files: File[] }
+    response: { vault: string; path: string; files: (File | Directory)[] }
   }
 
   'fs.upload.start': { payload: IFileUpload; response: { upload_id: string } }

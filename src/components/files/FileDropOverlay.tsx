@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useFileDrop } from '@/hooks/useFileDrop'
+import { FileWithRelativePath } from '@/models/systemFile'
 
 interface FileDropOverlayProps {
-  onFiles: (files: File[]) => void
+  onFiles: (files: FileWithRelativePath[]) => void
   children: React.ReactNode
 }
 
