@@ -1,7 +1,7 @@
 'use client'
 
 import { User } from '@/models/user'
-import { motion } from 'framer-motion'
+import * as motion from 'motion/react-client'
 import { getUserIcon } from '@/util/icons/getUserIcon'
 import { prettifySnakeCase } from '@/util/prettifySnakeCase'
 

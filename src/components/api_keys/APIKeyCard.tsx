@@ -1,7 +1,7 @@
 'use client'
 
 import { APIKey } from '@/models/apiKey'
-import { motion } from 'framer-motion'
+import * as motion from 'motion/react-client'
 import AWS from '@/fa-brands/aws.svg'
 import Cloudflare from '@/fa-brands/cloudflare.svg'
 import { FC, SVGProps } from 'react'

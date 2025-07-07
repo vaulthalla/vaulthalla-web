@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useMemo, useState, memo } from 'react'
-import { motion } from 'framer-motion'
+import * as motion from 'motion/react-client'
 import ArrowRight from '@/fa-duotone/arrow-right.svg'
 import Folder from '@/fa-duotone/folder.svg'
 import FileIcon from '@/fa-duotone/file.svg'

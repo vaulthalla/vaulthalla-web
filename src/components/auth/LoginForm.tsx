@@ -8,7 +8,8 @@ import { useEffect, useState } from 'react'
 import Logo from '@/public/vaulthalla-logo.png'
 import NextImage from 'next/image'
 import { Button } from '@/components/Button'
-import { motion, AnimatePresence } from 'framer-motion'
+import * as motion from 'motion/react-client'
+import { AnimatePresence } from 'motion/react'
 import { vaulthallaQuotes } from '@/util/quotes'
 
 interface LoginFormValues {
