@@ -1,107 +1,83 @@
 export type VaultType = 'local' | 's3'
 
-export class Vault {
+interface IVault {
   id: number
   name: string
   type: VaultType
-  ownerId: number
+  owner_id: number
   owner: string
-  isActive: boolean
-  createdAt: string
-
-  constructor(
-    id: number = 0,
-    name: string = '',
-    type: VaultType = 'local',
-    ownerId: number = 0,
-    owner: string = '',
-    isActive: boolean = true,
-    createdAt: string = new Date().toISOString(),
-  ) {
-    this.id = id
-    this.name = name
-    this.type = type
-    this.ownerId = ownerId
-    this.owner = owner
-    this.isActive = isActive
-    this.createdAt = createdAt
-  }
+  is_active: boolean
+  created_at: string
 }
 
-export class LocalDiskStorage extends Vault {
-  vault_id: number
+interface ILocalDisk extends IVault {
   mount_point: string
-
-  constructor(
-    id: number = 0,
-    name: string = '',
-    mount_point: string = '',
-    isActive: boolean = true,
-    createdAt: string = new Date().toISOString(),
-    ownerId: number = 0,
-    owner: string = '',
-  ) {
-    super(id, name, 'local', ownerId, owner, isActive, createdAt)
-    this.vault_id = id
-    this.mount_point = mount_point
-  }
 }
 
-export class S3Storage extends Vault {
-  vault_id: number = 0
+interface IS3 extends IVault {
+  vault_id: number
+  api_key_id: number
   bucket: string
   region: string
-  accessKey: string
-  secretAccessKey: string
+  access_key: string
+  secret_access_key: string
   endpoint: string
+}
 
-  constructor(
-    id: number = 0,
-    name: string = '',
-    bucket: string = '',
-    region: string = '',
-    accessKey: string = '',
-    secretAccessKey: string = '',
-    endpoint: string = '',
-    isActive: boolean = true,
-    createdAt: string = new Date().toISOString(),
-    ownerId: number = 0,
-    owner: string = '',
-  ) {
-    super(id, name, 's3', ownerId, owner, isActive, createdAt)
-    this.vault_id = id
-    this.bucket = bucket
-    this.region = region
-    this.accessKey = accessKey
-    this.secretAccessKey = secretAccessKey
-    this.endpoint = endpoint
+export class Vault implements IVault {
+  id: number = 0
+  name: string = ''
+  type: VaultType = 'local'
+  owner_id: number = 0
+  owner: string = ''
+  is_active: boolean = true
+  created_at: string = new Date().toISOString()
+
+  constructor(data?: Partial<IVault>) {
+    if (data) Object.assign(this, data)
   }
 }
 
-export const toVaultArray = (vaults: any[]): Vault[] => {
+export class LocalDiskVault implements ILocalDisk {
+  id: number = 0
+  name: string = ''
+  type: VaultType = 'local'
+  owner_id: number = 0
+  owner: string = ''
+  is_active: boolean = true
+  created_at: string = new Date().toISOString()
+  mount_point: string = ''
+
+  constructor(data?: Partial<ILocalDisk>) {
+    if (data) Object.assign(this, data)
+  }
+}
+
+export class S3Vault implements IS3 {
+  id: number = 0
+  name: string = ''
+  type: VaultType = 's3'
+  owner_id: number = 0
+  owner: string = ''
+  is_active: boolean = true
+  created_at: string = new Date().toISOString()
+  vault_id: number = 0
+  api_key_id: number = 0
+  bucket: string = ''
+  region: string = ''
+  access_key: string = ''
+  secret_access_key: string = ''
+  endpoint: string = ''
+
+  constructor(data?: Partial<IS3>) {
+    if (data) Object.assign(this, data)
+  }
+}
+
+export const toVaultArray = (vaults: any[]): (LocalDiskVault | S3Vault)[] => {
   return vaults.map(v => {
-    const isActive = v.is_active ?? v.isActive ?? true
-    const createdAt = v.created_at ?? v.createdAt ?? new Date().toISOString()
-
-    if (v.type === 'local') {
-      return new LocalDiskStorage(v.id, v.name, v.mount_point, isActive, createdAt, v.owner_id, v.owner)
-    }
-
-    if (v.type === 's3') {
-      return new S3Storage(
-        v.id,
-        v.name,
-        v.bucket,
-        v.region,
-        v.accessKey,
-        v.secretAccessKey,
-        v.endpoint,
-        isActive,
-        createdAt,
-        v.owner_id,
-        v.owner,
-      )
-    }
+    if (v.type === 'local') return new LocalDiskVault(v)
+    if (v.type === 's3') return new S3Vault(v)
 
     throw new Error(`Unknown vault type: ${v.type}`)
   })

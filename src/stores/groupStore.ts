@@ -116,7 +116,7 @@ export const useGroupStore = create<PermissionStore>()(
       },
     }),
     {
-      name: 'group-store',
+      name: 'vaulthalla-groups',
       partialize: state => ({ groups: state.groups }),
       onRehydrateStorage: () => state => {
         if (state) {

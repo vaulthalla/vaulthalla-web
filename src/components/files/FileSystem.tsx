@@ -11,6 +11,7 @@ import { CardContent } from '@/components/card/CardContent'
 import { Card } from '@/components/card/Card'
 import type { File as FileModel } from '@/models/file'
 import { Directory } from '@/models/directory'
+import { getPreviewUrl } from '@/util/getUrl'
 
 const isDirectory = (file: FileModel | Directory): file is Directory => {
   return (file as Directory).stats !== undefined
@@ -38,16 +39,25 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
 
   const rows = useMemo(
     () =>
-      files.map(f => ({
-        key: f.path ?? f.name,
-        icon:
-          isDirectory(f) ?
-            <Folder className="text-primary fill-current" />
-          : <FileIcon className="text-primary fill-current" />,
-        size: formatSize(f), // TODO handle directories
-        modified: new Date(f.updated_at).toLocaleString(),
-        ...f,
-      })),
+      files.map(f => {
+        const key = f.path ?? f.name
+        const previewUrl =
+          !isDirectory(f) ?
+            `${getPreviewUrl()}?vault_id=${f.vault_id}&path=${encodeURIComponent(f.path || f.name)}`
+          : null
+
+        return {
+          key,
+          icon:
+            isDirectory(f) ?
+              <Folder className="text-primary fill-current" />
+            : <FileIcon className="text-primary fill-current" />,
+          size: formatSize(f),
+          modified: new Date(f.updated_at).toLocaleString(),
+          previewUrl,
+          ...f,
+        }
+      }),
     [files],
   )
 
@@ -77,7 +87,9 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
                   <TableCell
                     className="flex items-center gap-2 pl-2 text-white"
                     onClick={() => isDirectory(r) && onNavigate(r.path ?? r.name)}>
-                    {r.icon}
+                    {!isDirectory(r) && r.previewUrl ?
+                      <img src={r.previewUrl} alt={r.name} className="h-6 w-6 rounded" />
+                    : r.icon}
                     <span className="max-w-[260px] truncate select-none">{r.name}</span>
                     {isDirectory(r) && hovered === r.key && <ArrowRight className="text-primary ml-1 h-4 w-4" />}
                   </TableCell>

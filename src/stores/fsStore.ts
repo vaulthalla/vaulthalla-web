@@ -2,12 +2,12 @@ import { create } from 'zustand'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 import { WSCommandPayload } from '@/util/webSocketCommands'
 import { File as DBFile } from '@/models/file'
-import { LocalDiskStorage, S3Storage, Vault } from '@/models/vaults'
+import { LocalDiskVault, S3Vault, Vault } from '@/models/vaults'
 import { persist } from 'zustand/middleware'
 import { useVaultStore } from '@/stores/vaultStore'
 
 interface FsStore {
-  currVault: Vault | LocalDiskStorage | S3Storage | null
+  currVault: Vault | LocalDiskVault | S3Vault | null
   path: string
   uploading: boolean
   uploadProgress: number

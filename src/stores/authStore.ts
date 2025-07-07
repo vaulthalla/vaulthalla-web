@@ -86,6 +86,14 @@ export const useAuthStore = create<AuthState>()(
           const sendCommand = useWebSocketStore.getState().sendCommand
           const socket = useWebSocketStore.getState().socket
           sendCommand('auth.logout', null)
+
+          localStorage.removeItem('vaulthalla-auth')
+          localStorage.removeItem('vaulthalla-groups')
+          localStorage.removeItem('vaulthalla-vaults')
+          localStorage.removeItem('vaulthalla-fs')
+          localStorage.removeItem('vaulthalla-api-keys')
+          localStorage.removeItem('vaulthalla-permissions')
+
           setTimeout(() => socket?.close(), 100)
         } catch (err) {
           set({ error: getErrorMessage(err) || 'Logout failed' })
@@ -215,7 +223,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'auth-store',
+      name: 'vaulthalla-auth',
       partialize: state => ({ token: state.token, user: state.user }),
       onRehydrateStorage: () => () => {
         if (!useAuthStore.getState().token) return

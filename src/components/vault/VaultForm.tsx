@@ -1,0 +1,109 @@
+'use client'
+
+import { useApiKeyStore } from '@/stores/apiKeyStore'
+import { useVaultStore } from '@/stores/vaultStore'
+import { useForm, Controller } from 'react-hook-form'
+import { motion } from 'framer-motion'
+import { Button } from '@/components/Button'
+import { LocalDiskVault, S3Vault } from '@/models/vaults'
+import { useRouter } from 'next/navigation'
+
+type VaultFormValues =
+  | ({ type: 'local' } & Pick<LocalDiskVault, 'name' | 'mount_point'>)
+  | ({ type: 's3' } & Pick<S3Vault, 'name' | 'api_key_id' | 'bucket'>)
+
+const VaultForm = ({ initialValues }: { initialValues?: Partial<LocalDiskVault | S3Vault> }) => {
+  const router = useRouter()
+  const apiKeys = useApiKeyStore(state => state.apiKeys)
+  const addVault = useVaultStore(state => state.addVault)
+  const updateVault = useVaultStore(state => state.updateVault) // assuming you have this
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    control,
+    formState: { errors },
+  } = useForm<VaultFormValues>({ defaultValues: initialValues || { name: '', type: 'local', mount_point: '' } })
+
+  const type = watch('type')
+
+  const onSubmit = async (data: VaultFormValues) => {
+    // TODO: Implement updateVault in vaultStore
+    if (initialValues?.name) await updateVault(data)
+    else await addVault(data)
+    router.push('/dashboard/vaults')
+  }
+
+  return (
+    <motion.form
+      onSubmit={handleSubmit(onSubmit)}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex h-fit flex-col gap-4 rounded-lg border p-4 shadow">
+      <div>
+        <label className="block text-sm font-medium">Vault Name</label>
+        <input {...register('name', { required: 'Name is required' })} className="mt-1 w-full rounded border p-2" />
+        {errors.name && <span className="text-sm text-red-400">{errors.name.message}</span>}
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium">Type</label>
+        <select {...register('type')} className="mt-1 w-full rounded border p-2">
+          <option value="local">Local</option>
+          <option value="s3">S3</option>
+        </select>
+      </div>
+
+      {type === 'local' && (
+        <motion.div key="local" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <label className="block text-sm font-medium">Mount Point</label>
+          <input
+            {...register('mount_point', { required: 'Mount point is required' })}
+            className="mt-1 w-full rounded border p-2"
+          />
+          {'mount_point' in errors && errors.mount_point && (
+            <span className="text-sm text-red-400">{errors.mount_point.message}</span>
+          )}
+        </motion.div>
+      )}
+
+      {type === 's3' && (
+        <motion.div key="s3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <label className="block text-sm font-medium">API Key</label>
+          <Controller
+            name="api_key_id"
+            control={control}
+            rules={{ required: 'API Key is required' }}
+            render={({ field }) => (
+              <select {...field} className="mt-1 w-full rounded border p-2">
+                <option value="">Select API Key</option>
+                {apiKeys.map(k => (
+                  <option key={k.id} value={k.id}>
+                    {k.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          />
+          {'api_key_id' in errors && errors.api_key_id && (
+            <span className="text-sm text-red-400">{errors.api_key_id.message}</span>
+          )}
+
+          <label className="mt-2 block text-sm font-medium">Bucket</label>
+          <input
+            {...register('bucket', { required: 'Bucket is required' })}
+            className="mt-1 w-full rounded border p-2"
+          />
+          {'bucket' in errors && errors.bucket && <span className="text-sm text-red-400">{errors.bucket.message}</span>}
+        </motion.div>
+      )}
+
+      <Button type="submit" className="mt-2">
+        {initialValues?.name ? 'Update Vault' : 'Add Vault'}
+      </Button>
+    </motion.form>
+  )
+}
+
+export default VaultForm

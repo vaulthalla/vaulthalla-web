@@ -27,7 +27,7 @@ const VaultCard = (vault: Vault) => {
       whileTap={{ scale: 0.985 }}
       className="card-glass relative my-4 w-96 rounded-xl border p-6 shadow-md transition-transform">
       <div className="absolute top-2.5 right-2.5 text-2xl">
-        {vault.isActive ?
+        {vault.is_active ?
           <ShieldCheck className="fill-current text-green-600" />
         : <AlertTriangle className="fill-current text-red-600" />}
       </div>
@@ -46,12 +46,12 @@ const VaultCard = (vault: Vault) => {
         </p>
         <p>
           <span className="font-medium text-gray-300">Created:</span>{' '}
-          <span>{new Date(vault.createdAt).toLocaleString()}</span>
+          <span>{new Date(vault.created_at).toLocaleString()}</span>
         </p>
         <p>
           <span className="font-medium text-gray-300">Status:</span>{' '}
-          <span className={vault.isActive ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>
-            {vault.isActive ? 'Active' : 'Inactive'}
+          <span className={vault.is_active ? 'font-semibold text-green-600' : 'font-semibold text-red-600'}>
+            {vault.is_active ? 'Active' : 'Inactive'}
           </span>
         </p>
       </div>

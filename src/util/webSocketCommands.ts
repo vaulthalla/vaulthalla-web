@@ -1,4 +1,4 @@
-import { Vault } from '@/models/vaults'
+import { LocalDiskVault, S3Vault, Vault } from '@/models/vaults'
 import { APIKey } from '@/models/apiKey'
 import { User } from '@/models/user'
 import { VaultRole, UserRole, IRole } from '@/models/role'
@@ -41,7 +41,7 @@ export interface WebSocketCommandMap {
 
   // Vault commands
 
-  'storage.vault.list': { payload: null; response: { vaults: string } }
+  'storage.vault.list': { payload: null; response: { vaults: Vault[] } }
 
   'storage.vault.add': {
     payload:
@@ -52,7 +52,7 @@ export interface WebSocketCommandMap {
 
   'storage.vault.remove': { payload: { id: number }; response: null }
 
-  'storage.vault.get': { payload: { id: number }; response: { vault: Vault } }
+  'storage.vault.get': { payload: { id: number }; response: { vault: LocalDiskVault | S3Vault } }
 
   // API Key commands
 
