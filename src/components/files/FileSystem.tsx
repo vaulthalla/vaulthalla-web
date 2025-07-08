@@ -43,7 +43,7 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
         const key = f.path ?? f.name
         const previewUrl =
           !isDirectory(f) ?
-            `${getPreviewUrl()}?vault_id=${f.vault_id}&path=${encodeURIComponent(f.path || f.name)}`
+            `${getPreviewUrl()}?vault_id=${f.vault_id}&path=${encodeURIComponent(f.path || f.name)}&size=64`
           : null
 
         return {
