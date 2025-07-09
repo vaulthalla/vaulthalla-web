@@ -1,11 +1,11 @@
 import Link from 'next/link'
 import { Button } from '@/components/Button'
 import RoleCard from '@/components/roles/RoleCard'
-import { Role, UserRole } from '@/models/role'
+import { VaultRole, UserRole } from '@/models/role'
 import { usePathname } from 'next/navigation'
 import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
 
-const RolesComponent = ({ roles }: { roles: Role[] | UserRole[] }) => {
+const RolesComponent = ({ roles }: { roles: VaultRole[] | UserRole[] }) => {
   const path = usePathname()
   const isUserRole = path.endsWith('/user')
 
@@ -25,8 +25,8 @@ const RolesComponent = ({ roles }: { roles: Role[] | UserRole[] }) => {
       {roles.length > 0 ?
         <div className="3xl:grid-cols-3 grid gap-6 sm:grid-cols-1 md:grid-cols-2">
           {roles.map(role => (
-            <Link href="/dashboard/roles/[role_id]" as={`/dashboard/roles/${role.id}`} key={role.id}>
-              <RoleCard {...role} key={role.id} />
+            <Link href="/dashboard/roles/[role_id]" as={`/dashboard/roles/${role.name}`} key={role.name}>
+              <RoleCard {...role} key={role.name} />
             </Link>
           ))}
         </div>

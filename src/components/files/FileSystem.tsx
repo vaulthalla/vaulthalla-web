@@ -12,13 +12,13 @@ import { Card } from '@/components/card/Card'
 import type { File as FileModel } from '@/models/file'
 import { Directory } from '@/models/directory'
 import { getPreviewUrl } from '@/util/getUrl'
-import { FilePreviewModal } from './FilePreviewModal' // Assumes this exists in same folder
+import { FilePreviewModal } from './FilePreviewModal'
+import Image from 'next/image' // Assumes this exists in same folder
 
 const isDirectory = (file: FileModel | Directory): file is Directory => (file as Directory).stats !== undefined
 
 const formatSize = (item: FileModel | Directory): string => {
   const bytes = isDirectory(item) ? item.stats?.size_bytes : item.size_bytes
-  if (isDirectory(item)) return '-'
   if (!bytes) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
@@ -83,7 +83,7 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
             className="flex items-center gap-2 pl-2 text-white"
             onClick={() => (isDirectory(r) ? onNavigate(r.path ?? r.name) : setSelectedFile(r as FileModel))}>
             {!isDirectory(r) && r.previewUrl ?
-              <img src={r.previewUrl} alt={r.name} className="h-6 w-6 rounded" />
+              <Image src={r.previewUrl} alt={r.name} height={30} width={30} className="rounded" />
             : r.icon}
             <span className="max-w-[260px] truncate select-none">{r.name}</span>
             {isDirectory(r) && hovered === r.key && <ArrowRight className="text-primary ml-1 h-4 w-4" />}
