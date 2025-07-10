@@ -33,7 +33,7 @@ export const useApiKeyStore = create<ApiKeyStore>()(
         const sendCommand = useWebSocketStore.getState().sendCommand
         await sendCommand('storage.apiKey.remove', { id })
 
-        const current = get().apiKeys.find(k => k.id === id)
+        const current = get().apiKeys.find(k => k.api_key_id === id)
         if (current) await get().fetchApiKeys(null)
       },
 

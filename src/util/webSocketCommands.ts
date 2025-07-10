@@ -1,5 +1,5 @@
 import { LocalDiskVault, S3Vault, Vault } from '@/models/vaults'
-import { APIKey } from '@/models/apiKey'
+import { APIKey, S3APIKey } from '@/models/apiKey'
 import { User } from '@/models/user'
 import { VaultRole, UserRole, IRole } from '@/models/role'
 import { Permission } from '@/models/permission'
@@ -47,7 +47,7 @@ export interface WebSocketCommandMap {
     payload:
       | { name: string; type: 'local'; mount_point: string }
       | { name: string; type: 's3'; api_key_id: number; bucket: string }
-    response: { data: { id: number; name: string; type: string; is_active: boolean; created_at: number } }
+    response: { vault: LocalDiskVault | S3Vault }
   }
 
   'storage.vault.remove': { payload: { id: number }; response: null }
@@ -60,18 +60,7 @@ export interface WebSocketCommandMap {
 
   'storage.apiKey.list.user': { payload: null; response: { keys: string /* JSON string of API keys */ } }
 
-  'storage.apiKey.add': {
-    payload: {
-      user_id: number
-      name: string
-      type: string // right now only "s3"
-      access_key: string
-      secret_access_key: string
-      region: string
-      endpoint: string
-    }
-    response: null
-  }
+  'storage.apiKey.add': { payload: S3APIKey; response: null }
 
   'storage.apiKey.remove': { payload: { id: number }; response: null }
 

@@ -1,5 +1,5 @@
 export interface APIKeyType {
-  id: number
+  api_key_id: number
   user_id: number
   type: string // 's3', 'vault', etc.
   name: string
@@ -7,28 +7,28 @@ export interface APIKeyType {
   provider?: string // Optional for S3APIKey
 }
 
+interface S3APIKeyType extends APIKeyType {
+  access_key: string
+  secret_access_key: string
+  region: string
+  endpoint: string
+}
+
 export class APIKey implements APIKeyType {
-  id: number
+  api_key_id: number
   user_id: number
   type: string
   name: string
   created_at: string
   provider?: string // Optional for generic APIKey
 
-  constructor(
-    id: number,
-    user_id: number,
-    type: string,
-    name: string,
-    created_at: string = new Date().toISOString(),
-    provider: string = '', // Default to empty string if not provided
-  ) {
-    this.id = id
-    this.user_id = user_id
-    this.type = type
-    this.name = name
-    this.created_at = created_at
-    this.provider = provider
+  constructor(data: APIKeyType) {
+    this.api_key_id = data.api_key_id
+    this.user_id = data.user_id
+    this.type = data.type
+    this.name = data.name
+    this.created_at = data.created_at
+    this.provider = data.provider ?? ''
   }
 }
 
@@ -39,29 +39,26 @@ export class S3APIKey extends APIKey {
   region: string
   endpoint: string
 
-  constructor(
-    id: number,
-    user_id: number,
-    name: string,
-    created_at: string,
-    provider: string,
-    access_key: string,
-    secret_access_key: string,
-    region: string,
-    endpoint: string,
-  ) {
-    super(id, user_id, 's3', name, created_at)
-    this.provider = provider
-    this.access_key = access_key
-    this.secret_access_key = secret_access_key
-    this.region = region
-    this.endpoint = endpoint
+  constructor(data: APIKeyType & S3APIKeyType) {
+    super(data)
+    this.provider = data.provider ?? 's3'
+    this.access_key = data.access_key
+    this.secret_access_key = data.secret_access_key
+    this.region = data.region
+    this.endpoint = data.endpoint
   }
 }
 
 export const toAPIKeyArray = (keys: any[]): APIKey[] => {
   return keys.map(k => {
     const createdAt = k.created_at ?? k.createdAt ?? new Date().toISOString()
-    return new APIKey(k.id, k.user_id, k.type, k.name, createdAt, k.provider ?? '')
+    return new APIKey({
+      api_key_id: k.api_key_id ?? k.id,
+      user_id: k.user_id ?? k.owner_id,
+      type: k.type ?? 'generic',
+      name: k.name ?? 'Unnamed API Key',
+      created_at: createdAt,
+      provider: k.provider ?? '',
+    })
   })
 }

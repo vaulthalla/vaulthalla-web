@@ -16,7 +16,7 @@ const VaultForm = ({ initialValues }: { initialValues?: Partial<LocalDiskVault |
   const router = useRouter()
   const apiKeys = useApiKeyStore(state => state.apiKeys)
   const addVault = useVaultStore(state => state.addVault)
-  const updateVault = useVaultStore(state => state.updateVault) // assuming you have this
+  const updateVault = useVaultStore(state => state.updateVault)
 
   const {
     register,
@@ -76,10 +76,14 @@ const VaultForm = ({ initialValues }: { initialValues?: Partial<LocalDiskVault |
             control={control}
             rules={{ required: 'API Key is required' }}
             render={({ field }) => (
-              <select {...field} className="mt-1 w-full rounded border p-2">
+              <select
+                {...field}
+                onChange={e => field.onChange(Number(e.target.value))} // 🔧 force number
+                value={field.value ?? ''} // Ensure controlled
+                className="mt-1 w-full rounded border p-2">
                 <option value="">Select API Key</option>
                 {apiKeys.map(k => (
-                  <option key={k.id} value={k.id}>
+                  <option key={k.api_key_id} value={k.api_key_id}>
                     {k.name}
                   </option>
                 ))}

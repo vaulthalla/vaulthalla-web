@@ -17,8 +17,8 @@ const APIKeysComponent = () => {
       {apiKeys && apiKeys.length > 0 ?
         <ul className="my-6">
           {apiKeys.map(apiKey => (
-            <li key={apiKey.id} className="my-4">
-              <Link href="/dashboard/api-keys/[slug]" as={`/dashboard/api-keys/${apiKey.id}`}>
+            <li key={apiKey.api_key_id} className="my-4">
+              <Link href="/dashboard/api-keys/[slug]" as={`/dashboard/api-keys/${apiKey.api_key_id}`}>
                 <APIKeyCard {...apiKey} />
               </Link>
             </li>
