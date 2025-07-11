@@ -1,26 +1,24 @@
 'use client'
 
 import { FileSystem } from '@/components/files/FileSystem'
-import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
 import { useFSStore } from '@/stores/fsStore'
 import { FileDropOverlay } from '@/components/files/FileDropOverlay'
 import { FileWithRelativePath } from '@/models/systemFile'
+import UploadProgress from '@/components/loading/UploadProgress'
 
 const FilesClientPage = () => {
-  const { files, path, uploadFile, setPath } = useFSStore()
-
-  if (!files) return <CircleNotchLoader />
+  const { files, upload, setPath, fetchFiles } = useFSStore()
 
   const processFiles = (files: FileWithRelativePath[]) => {
     ;(async () => {
-      for (const file of files) {
-        await uploadFile({ file, targetPath: path + '/' + file.relativePath })
-      }
+      upload(files).catch(console.error)
+      await fetchFiles()
     })()
   }
 
   return (
     <FileDropOverlay onFiles={processFiles}>
+      <UploadProgress />
       <FileSystem files={files} onNavigate={setPath} />
     </FileDropOverlay>
   )

@@ -5,6 +5,7 @@ import { File as DBFile } from '@/models/file'
 import { LocalDiskVault, S3Vault, Vault } from '@/models/vaults'
 import { persist } from 'zustand/middleware'
 import { useVaultStore } from '@/stores/vaultStore'
+import { FileWithRelativePath } from '@/models/systemFile'
 
 interface FsStore {
   currVault: Vault | LocalDiskVault | S3Vault | null
@@ -13,7 +14,16 @@ interface FsStore {
   uploadProgress: number
   files: DBFile[]
   fetchFiles: () => Promise<void>
-  uploadFile: ({ file, targetPath }: { file: File; targetPath?: string }) => Promise<void>
+  upload: (files: FileWithRelativePath[]) => Promise<void>
+  uploadFile: ({
+    file,
+    targetPath,
+    onProgress,
+  }: {
+    file: File
+    targetPath?: string
+    onProgress?: (bytes: number) => void
+  }) => Promise<void>
   mkdir: (payload: WSCommandPayload<'fs.dir.create'>) => Promise<void>
   setCurrVault: (vault: Vault) => void
   setPath: (dir: string) => void
@@ -51,34 +61,55 @@ export const useFSStore = create<FsStore>()(
         }
       },
 
-      async uploadFile({ file, targetPath = get().path }) {
+      async upload(files: FileWithRelativePath[]) {
+        const { uploadFile, fetchFiles, path } = get()
+
+        set({ uploading: true, uploadProgress: 0 })
+
+        const totalBytes = files.reduce((sum, f) => sum + f.size, 0)
+        let uploadedBytes = 0
+
+        try {
+          for (const file of files) {
+            await uploadFile({
+              file,
+              targetPath: path + '/' + file.relativePath,
+              onProgress: bytes => {
+                uploadedBytes += bytes
+                set({ uploadProgress: Math.min(100, (uploadedBytes / totalBytes) * 100) })
+              },
+            })
+          }
+
+          await fetchFiles()
+        } catch (err) {
+          console.error('[FsStore] upload() batch failed:', err)
+          throw err
+        } finally {
+          set({ uploading: false })
+        }
+      },
+
+      async uploadFile({ file, targetPath = get().path, onProgress }) {
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
 
         const { currVault } = get()
-        if (!currVault) {
-          throw new Error('No current vault selected')
-        }
-
-        set({ uploading: true, uploadProgress: 0 })
+        if (!currVault) throw new Error('No current vault selected')
 
         try {
-          // 1️⃣ Start upload
           const startResp = await ws.sendCommand('fs.upload.start', {
             vault_id: currVault.id,
             path: targetPath,
             size: file.size,
           })
 
-          console.log(startResp)
-
           const uploadId = startResp.upload_id
-          if (!uploadId) throw new Error('Server did not return an upload_id')
+          if (!uploadId) throw new Error('No upload_id returned')
 
-          // 2️⃣ Send binary frames
           const wsInstance = ws.socket
           if (!wsInstance || wsInstance.readyState !== WebSocket.OPEN) throw new Error('WebSocket is not connected')
-          const chunkSize = 64 * 1024 // 64KB per frame
+          const chunkSize = 64 * 1024
           let offset = 0
 
           while (offset < file.size) {
@@ -87,22 +118,12 @@ export const useFSStore = create<FsStore>()(
             wsInstance.send(arrayBuffer)
 
             offset += chunkSize
-            set({ uploadProgress: (offset / file.size) * 100 })
+            onProgress?.(chunkSize)
           }
 
-          // 3️⃣ Finish upload
-          const res = await ws.sendCommand('fs.upload.finish', { vault_id: currVault.id, path: targetPath })
-
-          console.log(res)
-
-          console.log('[FsStore] Upload finished successfully')
-          set({ uploading: false, uploadProgress: 100 })
-
-          // Optionally refresh directory listing
-          await get().fetchFiles()
+          await ws.sendCommand('fs.upload.finish', { vault_id: currVault.id, path: targetPath })
         } catch (err) {
-          console.error('[FsStore] Upload error:', err)
-          set({ uploading: false, uploadProgress: 0 })
+          console.error('[FsStore] uploadFile error:', err)
           throw err
         }
       },

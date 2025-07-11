@@ -1,22 +1,49 @@
 'use client'
 
-import { Vault } from '@/models/vaults'
+import { S3Vault, Vault } from '@/models/vaults'
 import ShieldCheck from '@/fa-regular/shield-check.svg'
 import AlertTriangle from '@/fa-regular/triangle-exclamation.svg'
 import HardDrive from '@/fa-regular/hard-drive.svg'
 import * as motion from 'motion/react-client'
+import { getVaultIcon } from '@/util/icons/vaultIconsMap'
+import { useEffect, useState } from 'react'
+import { useApiKeyStore } from '@/stores/apiKeyStore'
 
 const VaultCard = (vault: Vault) => {
+  const [provider, setProvider] = useState('')
+
+  console.log('vault', vault)
+
+  useEffect(() => {
+    const getProviderName = async () => {
+      if (vault.type !== 's3') setProvider('local')
+      else {
+        try {
+          const s3Vault = new S3Vault(vault)
+          const key = await useApiKeyStore.getState().getApiKey({ id: s3Vault.api_key_id })
+          if (key.provider) setProvider(key.provider)
+        } catch (error) {
+          console.error('Error fetching provider:', error)
+          setProvider('local')
+        }
+      }
+    }
+
+    getProviderName()
+  }, [])
+
   const getType = (type: string) => {
     switch (type) {
       case 'local':
         return 'Local Disk Vault'
       case 's3':
-        return 'S3 Compatible Vault'
+        return 'S3 Vault'
       default:
         return 'Unknown Type'
     }
   }
+
+  const Icon = getVaultIcon({ type: vault.type, provider: provider })
 
   return (
     <motion.div
@@ -33,7 +60,7 @@ const VaultCard = (vault: Vault) => {
       </div>
 
       <div className="flex items-center space-x-2 text-2xl">
-        <HardDrive className="text-primary fill-current" />
+        <Icon className="text-primary fill-current" />
         <h2 className="font-bold tracking-tight text-white">{vault.name}</h2>
       </div>
 
