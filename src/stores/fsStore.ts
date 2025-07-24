@@ -6,6 +6,7 @@ import { LocalDiskVault, S3Vault, Vault } from '@/models/vaults'
 import { persist } from 'zustand/middleware'
 import { useVaultStore } from '@/stores/vaultStore'
 import { FileWithRelativePath } from '@/models/systemFile'
+import { Directory } from '@/models/directory'
 
 interface FsStore {
   currVault: Vault | LocalDiskVault | S3Vault | null
@@ -13,6 +14,9 @@ interface FsStore {
   uploading: boolean
   uploadProgress: number
   files: DBFile[]
+  copiedItem: DBFile | Directory | null
+  setCopiedItem: (item: DBFile | Directory | null) => void
+  pasteCopiedItem: (targetPath?: string) => Promise<void>
   fetchFiles: () => Promise<void>
   upload: (files: FileWithRelativePath[]) => Promise<void>
   uploadFile: ({
@@ -24,7 +28,11 @@ interface FsStore {
     targetPath?: string
     onProgress?: (bytes: number) => void
   }) => Promise<void>
+  delete: (name: string) => Promise<void>
   mkdir: (payload: WSCommandPayload<'fs.dir.create'>) => Promise<void>
+  move: (payload: WSCommandPayload<'fs.entry.move'>) => Promise<void>
+  copy: (payload: WSCommandPayload<'fs.entry.copy'>) => Promise<void>
+  rename: (payload: WSCommandPayload<'fs.entry.rename'>) => Promise<void>
   setCurrVault: (vault: Vault) => void
   setPath: (dir: string) => void
   listDirectory: (payload: WSCommandPayload<'fs.dir.list'>) => Promise<DBFile[]>
@@ -38,6 +46,33 @@ export const useFSStore = create<FsStore>()(
       uploading: false,
       uploadProgress: 0,
       files: [],
+      copiedItem: null,
+
+      setCopiedItem(item) {
+        set({ copiedItem: item })
+      },
+
+      async pasteCopiedItem(targetPath) {
+        const { copiedItem, currVault, path } = get()
+        if (!copiedItem || !currVault || !copiedItem.path) {
+          console.warn('[FsStore] No item to paste or no current vault set')
+          return
+        }
+
+        const ws = useWebSocketStore.getState()
+        await ws.waitForConnection()
+
+        try {
+          const target = targetPath || path + '/' + copiedItem.name
+          await ws.sendCommand('fs.entry.copy', { vault_id: currVault.id, from: copiedItem.path, to: target })
+        } catch (error) {
+          console.error('[FsStore] pasteCopiedItem error:', error)
+          throw error
+        } finally {
+          set({ copiedItem: null })
+          await get().fetchFiles()
+        }
+      },
 
       async fetchFiles() {
         const ws = useWebSocketStore.getState()
@@ -81,6 +116,7 @@ export const useFSStore = create<FsStore>()(
             })
           }
 
+          await useVaultStore.getState().syncVault({ id: get().currVault?.id || 0 })
           await fetchFiles()
         } catch (err) {
           console.error('[FsStore] upload() batch failed:', err)
@@ -128,6 +164,28 @@ export const useFSStore = create<FsStore>()(
         }
       },
 
+      async delete(name) {
+        const ws = useWebSocketStore.getState()
+        await ws.waitForConnection()
+
+        const { currVault } = get()
+        if (!currVault) {
+          console.warn('[FsStore] No current vault set for deletion')
+          return
+        }
+
+        const path = get().path + '/' + name
+
+        try {
+          await ws.sendCommand('fs.entry.delete', { vault_id: currVault.id, path })
+          console.log('[FsStore] deleted:', path)
+          await get().fetchFiles()
+        } catch (error) {
+          console.error('Error deleting:', error)
+          throw error
+        }
+      },
+
       async mkdir({ vault_id, path }) {
         const ws = useWebSocketStore.getState()
         await ws.waitForConnection()
@@ -138,6 +196,48 @@ export const useFSStore = create<FsStore>()(
           await get().fetchFiles()
         } catch (error) {
           console.error('Error creating directory:', error)
+          throw error
+        }
+      },
+
+      async move({ vault_id, from, to }) {
+        const ws = useWebSocketStore.getState()
+        await ws.waitForConnection()
+
+        try {
+          await ws.sendCommand('fs.entry.move', { vault_id, from, to })
+          console.log('[FsStore] Moved:', from, 'to', to)
+          await get().fetchFiles()
+        } catch (error) {
+          console.error('Error moving file:', error)
+          throw error
+        }
+      },
+
+      async copy({ vault_id, from, to }) {
+        const ws = useWebSocketStore.getState()
+        await ws.waitForConnection()
+
+        try {
+          await ws.sendCommand('fs.entry.copy', { vault_id, from, to })
+          console.log('[FsStore] Copied:', from, 'to', to)
+          await get().fetchFiles()
+        } catch (error) {
+          console.error('Error copying file:', error)
+          throw error
+        }
+      },
+
+      async rename({ vault_id, from, to }) {
+        const ws = useWebSocketStore.getState()
+        await ws.waitForConnection()
+
+        try {
+          await ws.sendCommand('fs.entry.rename', { vault_id, from, to })
+          console.log('[FsStore] Renamed:', from, 'to', to)
+          await get().fetchFiles()
+        } catch (error) {
+          console.error('Error renaming file:', error)
           throw error
         }
       },

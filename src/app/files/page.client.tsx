@@ -5,6 +5,7 @@ import { useFSStore } from '@/stores/fsStore'
 import { FileDropOverlay } from '@/components/files/FileDropOverlay'
 import { FileWithRelativePath } from '@/models/systemFile'
 import UploadProgress from '@/components/loading/UploadProgress'
+import React from 'react'
 
 const FilesClientPage = () => {
   const { files, upload, setPath, fetchFiles } = useFSStore()

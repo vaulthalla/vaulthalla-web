@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useMemo, useState, memo } from 'react'
+import React, { useMemo, useState, memo, useRef } from 'react'
 import * as motion from 'motion/react-client'
 import ArrowRight from '@/fa-duotone/arrow-right.svg'
 import Folder from '@/fa-duotone/folder.svg'
@@ -13,12 +13,14 @@ import type { File as FileModel } from '@/models/file'
 import { Directory } from '@/models/directory'
 import { getPreviewUrl } from '@/util/getUrl'
 import { FilePreviewModal } from './FilePreviewModal'
-import Image from 'next/image' // Assumes this exists in same folder
+import Image from 'next/image'
+import { useFSStore } from '@/stores/fsStore'
+import { ContextMenu } from '@/components/files/ContextMenu' // Assumes this exists in same folder
 
-const isDirectory = (file: FileModel | Directory): file is Directory => (file as Directory).stats !== undefined
+const isDirectory = (file: FileModel | Directory): file is Directory => (file as Directory).file_count !== undefined
 
 const formatSize = (item: FileModel | Directory): string => {
-  const bytes = isDirectory(item) ? item.stats?.size_bytes : item.size_bytes
+  const bytes = item.size_bytes
   if (!bytes) return '0 B'
   const units = ['B', 'KB', 'MB', 'GB', 'TB']
   const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
@@ -31,14 +33,38 @@ interface FileSystemProps {
   onNavigate: (path: string) => void
 }
 
+interface RowInfo {
+  key: string
+  icon: React.ReactNode
+  size: string
+  modified: string
+  previewUrl?: string | null
+}
+
+type RowModel = RowInfo & (FileModel | Directory)
+
 export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }) => {
   const [hovered, setHovered] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<FileModel | null>(null)
+  const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number; row: RowModel } | null>(null)
+  const tableRef = useRef<HTMLDivElement>(null)
 
-  const rows = useMemo(
+  const { setCopiedItem, copiedItem, pasteCopiedItem } = useFSStore()
+
+  const handleDelete = (entryName: string) => {
+    useFSStore
+      .getState()
+      .delete(entryName)
+      .then(() => {
+        useFSStore.getState().fetchFiles()
+      })
+      .catch(err => console.error('Error deleting file:', err))
+  }
+
+  const rows: RowModel[] = useMemo(
     () =>
       files.map(f => {
-        const key = f.path ?? f.name
+        const key = f.path || f.name
         const previewUrl =
           !isDirectory(f) ?
             `${getPreviewUrl()}?vault_id=${f.vault_id}&path=${encodeURIComponent(f.path || f.name)}&size=64`
@@ -78,7 +104,11 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: 6 }}
           whileHover={{ scale: 1.01 }}
-          className="cursor-pointer border-b border-gray-800/60 transition-colors hover:bg-gray-800/70">
+          className="cursor-pointer border-b border-gray-800/60 transition-colors hover:bg-gray-800/70"
+          onContextMenu={e => {
+            e.preventDefault()
+            setContextMenu({ mouseX: e.clientX, mouseY: e.clientY, row: r })
+          }}>
           <TableCell
             className="flex items-center gap-2 pl-2 text-white"
             onClick={() => (isDirectory(r) ? onNavigate(r.path ?? r.name) : setSelectedFile(r as FileModel))}>
@@ -95,20 +125,45 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
     </TableBody>
   )
 
+  const RenderContextMenu = () =>
+    contextMenu && (
+      <ContextMenu
+        data={contextMenu.row}
+        position={{ x: contextMenu.mouseX, y: contextMenu.mouseY }}
+        onClose={() => setContextMenu(null)}
+        onDelete={row => handleDelete(row.name)}
+        onCopy={row => setCopiedItem(row)}
+      />
+    )
+
+  const handleTableClick = async (e: React.MouseEvent) => {
+    if (!copiedItem) return
+
+    const target = e.target as HTMLElement
+    const isRow = target.closest('tr')
+
+    if (!isRow) await pasteCopiedItem()
+  }
+
   return (
     <>
-      <Card className="min-h-[90vh] rounded-xl border border-gray-700 bg-gray-900/90 shadow-lg">
+      <Card
+        className="min-h-[90vh] rounded-xl border border-gray-700 bg-gray-900/90 shadow-lg"
+        onClick={() => setContextMenu(null)}>
         <CardContent className="p-0">
           <ScrollArea className="h-full">
-            <Table>
-              <Header />
-              <Body />
-            </Table>
+            <div ref={tableRef} onClick={handleTableClick}>
+              <Table>
+                <Header />
+                <Body />
+              </Table>
+            </div>
           </ScrollArea>
         </CardContent>
       </Card>
 
       <FilePreviewModal file={selectedFile} onClose={() => setSelectedFile(null)} />
+      <RenderContextMenu />
     </>
   )
 })

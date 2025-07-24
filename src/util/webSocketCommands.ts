@@ -54,6 +54,8 @@ export interface WebSocketCommandMap {
 
   'storage.vault.get': { payload: { id: number }; response: { vault: LocalDiskVault | S3Vault } }
 
+  'storage.vault.sync': { payload: { id: number }; response: null }
+
   // API Key commands
 
   'storage.apiKey.list': { payload: null; response: { keys: string } }
@@ -136,7 +138,13 @@ export interface WebSocketCommandMap {
 
   'fs.upload.finish': { payload: Partial<IFileUpload>; response: { path: string } }
 
-  'fs.file.write': { payload: { vault_id: number; path: string; content: string }; response: { success: boolean } }
+  'fs.entry.delete': { payload: { vault_id: number; path: string }; response: null }
+
+  'fs.entry.move': { payload: { vault_id: number; from: string; to: string }; response: { from: string; to: string } }
+
+  'fs.entry.copy': { payload: { vault_id: number; from: string; to: string }; response: { from: string; to: string } }
+
+  'fs.entry.rename': { payload: { vault_id: number; from: string; to: string }; response: { from: string; to: string } }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']

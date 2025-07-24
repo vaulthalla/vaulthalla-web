@@ -11,6 +11,7 @@ interface VaultStore {
   removeVault: (payload: WSCommandPayload<'storage.vault.remove'>) => Promise<void>
   getVault: (payload: WSCommandPayload<'storage.vault.get'>) => Promise<LocalDiskVault | S3Vault | Vault>
   getLocalVault: () => Promise<LocalDiskVault | undefined>
+  syncVault: (payload: WSCommandPayload<'storage.vault.sync'>) => Promise<void>
 }
 
 export const useVaultStore = create<VaultStore>()(
@@ -50,6 +51,11 @@ export const useVaultStore = create<VaultStore>()(
         if (local) return new LocalDiskVault(local)
 
         return undefined
+      },
+
+      async syncVault({ id }) {
+        const sendCommand = useWebSocketStore.getState().sendCommand
+        await sendCommand('storage.vault.sync', { id })
       },
     }),
     {
