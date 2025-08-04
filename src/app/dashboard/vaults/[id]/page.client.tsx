@@ -3,11 +3,11 @@
 import { useVaultStore } from '@/stores/vaultStore'
 import VaultForm from '@/components/vault/VaultForm'
 import { useEffect, useState } from 'react'
-import { LocalDiskVault, S3Vault } from '@/models/vaults'
+import { LocalDiskVault, S3Vault, Vault } from '@/models/vaults'
 import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
 
 const VaultClientPage = ({ id }: { id: number }) => {
-  const [vault, setVault] = useState<LocalDiskVault | S3Vault | null>(null)
+  const [vault, setVault] = useState<LocalDiskVault | S3Vault | Vault | null>(null)
 
   useEffect(() => {
     const fetchVault = async () => {
@@ -16,7 +16,7 @@ const VaultClientPage = ({ id }: { id: number }) => {
     }
 
     fetchVault()
-  }, [])
+  }, [id])
 
   if (!vault) return <CircleNotchLoader />
 

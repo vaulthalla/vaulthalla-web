@@ -3,7 +3,6 @@
 import { S3Vault, Vault } from '@/models/vaults'
 import ShieldCheck from '@/fa-regular/shield-check.svg'
 import AlertTriangle from '@/fa-regular/triangle-exclamation.svg'
-import HardDrive from '@/fa-regular/hard-drive.svg'
 import * as motion from 'motion/react-client'
 import { getVaultIcon } from '@/util/icons/vaultIconsMap'
 import { useEffect, useState } from 'react'
@@ -30,7 +29,7 @@ const VaultCard = (vault: Vault) => {
     }
 
     getProviderName()
-  }, [])
+  }, [vault])
 
   const getType = (type: string) => {
     switch (type) {

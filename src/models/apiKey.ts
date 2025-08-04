@@ -48,17 +48,3 @@ export class S3APIKey extends APIKey {
     this.endpoint = data.endpoint
   }
 }
-
-export const toAPIKeyArray = (keys: any[]): APIKey[] => {
-  return keys.map(k => {
-    const createdAt = k.created_at ?? k.createdAt ?? new Date().toISOString()
-    return new APIKey({
-      api_key_id: k.api_key_id ?? k.id,
-      user_id: k.user_id ?? k.owner_id,
-      type: k.type ?? 'generic',
-      name: k.name ?? 'Unnamed API Key',
-      created_at: createdAt,
-      provider: k.provider ?? '',
-    })
-  })
-}

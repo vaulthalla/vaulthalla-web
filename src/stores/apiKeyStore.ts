@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 import { WSCommandPayload } from '@/util/webSocketCommands'
-import { APIKey, S3APIKey, toAPIKeyArray } from '@/models/apiKey'
+import { APIKey, S3APIKey } from '@/models/apiKey'
 
 interface ApiKeyStore {
   apiKeys: APIKey[]
@@ -20,7 +20,7 @@ export const useApiKeyStore = create<ApiKeyStore>()(
       async fetchApiKeys() {
         const sendCommand = useWebSocketStore.getState().sendCommand
         const response = await sendCommand('storage.apiKey.list.user', null)
-        set({ apiKeys: toAPIKeyArray(JSON.parse(response.keys)) })
+        set({ apiKeys: JSON.parse(response.keys) })
       },
 
       async addApiKey(apiKeyPayload) {

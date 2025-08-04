@@ -1,8 +1,8 @@
 'use client'
 
-import { useForm, SubmitHandler } from 'react-hook-form'
+import { useForm, SubmitHandler, Path, get } from 'react-hook-form'
 import { motion } from 'framer-motion'
-import { useEffect } from 'react'
+import { JSX, useEffect } from 'react'
 import { Settings } from '@/models/settings'
 import { useSettingsStore } from '@/stores/settingsStore'
 import { Button } from '@/components/Button'
@@ -35,16 +35,19 @@ export default function SettingsForm(settings: Settings) {
       .replace('Mb', 'MB')
   }
 
-  const renderInput = (label: string, path: string, type: string = 'text') => {
+  const renderInput = (label: string, path: Path<Settings>, type: string = 'text') => {
     const displayLabel = transformDisplayName(label)
+
+    const error = get(errors, path) // 👈 handles "server.host" style paths safely
 
     if (type === 'checkbox') {
       return (
         <div key={path} className="flex items-center gap-2">
           <label className="flex items-center space-x-2 text-sm font-medium">
-            <input type="checkbox" className="form-checkbox" {...register(path as any)} />
+            <input type="checkbox" className="form-checkbox" {...register(path)} />
             <span>{displayLabel}</span>
           </label>
+          {error && <p className="text-sm text-red-500">{String(error.message ?? 'Invalid value')}</p>}
         </div>
       )
     }
@@ -52,7 +55,12 @@ export default function SettingsForm(settings: Settings) {
     return (
       <div key={path} className="space-y-1">
         <label className="text-sm font-semibold">{displayLabel}</label>
-        <input type={type} className="w-full rounded border px-3 py-2 dark:bg-gray-700" {...register(path as any)} />
+        <input
+          type={type}
+          className="w-full rounded border px-3 py-2 dark:bg-gray-700"
+          {...register(path, { required: `${displayLabel} is required` })}
+        />
+        {error && <p className="text-sm text-red-500">{String(error.message ?? 'Invalid value')}</p>}
       </div>
     )
   }
@@ -69,7 +77,7 @@ export default function SettingsForm(settings: Settings) {
               typeof val === 'boolean' ? 'checkbox'
               : typeof val === 'number' ? 'number'
               : 'text'
-            const path = `${sectionKey}.${key}`
+            const path = `${sectionKey}.${key}` as Path<Settings>
             const entry = renderInput(key, path, type)
             return type === 'checkbox' ? [textFields, [...boolFields, entry]] : [[...textFields, entry], boolFields]
           },

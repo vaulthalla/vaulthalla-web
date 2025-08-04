@@ -5,8 +5,8 @@ export interface Permission {
   description: string
   category: 'user' | 'vault'
   bit_position: number
-  created_at: string
-  updated_at: string
+  created_at: Date
+  updated_at: Date
 }
 
 // Permission override on a vault role
@@ -23,14 +23,14 @@ export interface IRole {
   description: string
   type: 'user' | 'vault'
   permissions: Record<string, boolean> // decoded mask
-  created_at: string
+  created_at: Date
 }
 
 // User role assignment
 export interface IUserRole extends IRole {
   assignment_id: number
   user_id: number
-  assigned_at: string
+  assigned_at: Date
 }
 
 // Vault role assignment
@@ -39,7 +39,7 @@ export interface IVaultRole extends IRole {
   vault_id: number
   subject_type: 'user' | 'group'
   subject_id: number
-  assigned_at: string
+  assigned_at: Date
   permission_overrides: PermissionOverride[]
 }
 

@@ -11,7 +11,8 @@ const AddRoleClientPage = () => {
     try {
       const response = await usePermsStore.getState().addRole(data)
       console.log('Role created successfully:', response)
-      await usePermsStore.getState().fetchRoles()
+      if (data.type === 'vault') await usePermsStore.getState().fetchVaultRoles()
+      else if (data.type === 'user') await usePermsStore.getState().fetchUserRoles()
       router.push('/dashboard/roles')
     } catch (error) {
       console.error('Error creating role:', error)

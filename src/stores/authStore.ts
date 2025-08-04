@@ -17,7 +17,7 @@ interface AuthState {
   setTokenCookie: (token: string | null) => void
   login: (payload: WSCommandPayload<'auth.login'>) => Promise<void>
   registerUser: (name: string, email: string, password: string, is_active: boolean, role: string) => Promise<void>
-  updateUser: (id: number, data: Partial<User>) => Promise<void>
+  updateUser: (payload: WSCommandPayload<'auth.user.update'>) => Promise<void>
   changePassword: (id: number, old_password: string, new_password: string) => Promise<void>
   isUserAuthenticated: () => Promise<boolean>
   logout: () => void
@@ -160,13 +160,13 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      updateUser: async (id, data) => {
+      updateUser: async payload => {
         set({ loading: true, error: null })
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
-          const response = await sendCommand('auth.user.update', { id, ...data })
+          const response = await sendCommand('auth.user.update', payload)
 
-          set(state => ({ user: state.user?.id === id ? { ...state.user, ...response.user } : state.user }))
+          set(state => ({ user: state.user?.id === payload.id ? { ...state.user, ...response.user } : state.user }))
         } catch (err) {
           set({ error: getErrorMessage(err) || 'User update failed' })
           throw err

@@ -79,7 +79,7 @@ const S3APIKeyForm = ({ edit, id }: { edit?: boolean; id?: number }) => {
 
   const inputStyles = 'border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-cyan-500'
 
-  const renderError = (error: any) =>
+  const renderError = (error: string | undefined) =>
     typeof error === 'string' ? <span className="text-sm text-red-500">{error}</span> : null
 
   const providers = [

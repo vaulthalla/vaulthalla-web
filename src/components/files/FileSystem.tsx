@@ -111,6 +111,8 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
           }}>
           <TableCell
             className="flex items-center gap-2 pl-2 text-white"
+            onMouseEnter={() => setHovered(r.key)}
+            onMouseLeave={() => setHovered(null)}
             onClick={() => (isDirectory(r) ? onNavigate(r.path ?? r.name) : setSelectedFile(r as FileModel))}>
             {!isDirectory(r) && r.previewUrl ?
               <Image src={r.previewUrl} alt={r.name} height={30} width={30} className="rounded" />

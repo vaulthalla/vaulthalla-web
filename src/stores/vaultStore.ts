@@ -2,12 +2,13 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { useWebSocketStore } from '@/stores/useWebSocket'
 import { WSCommandPayload } from '@/util/webSocketCommands'
-import { LocalDiskVault, S3Vault, toVaultArray, Vault } from '@/models/vaults'
+import { LocalDiskVault, S3Vault, Vault } from '@/models/vaults'
 
 interface VaultStore {
   vaults: Vault[]
   fetchVaults: () => Promise<void>
   addVault: (vaultPayload: WSCommandPayload<'storage.vault.add'>) => Promise<void>
+  updateVault: (payload: WSCommandPayload<'storage.vault.update'>) => Promise<void>
   removeVault: (payload: WSCommandPayload<'storage.vault.remove'>) => Promise<void>
   getVault: (payload: WSCommandPayload<'storage.vault.get'>) => Promise<LocalDiskVault | S3Vault | Vault>
   getLocalVault: () => Promise<LocalDiskVault | undefined>
@@ -24,12 +25,19 @@ export const useVaultStore = create<VaultStore>()(
         await ws.waitForConnection()
 
         const response = await ws.sendCommand('storage.vault.list', null)
-        set({ vaults: toVaultArray(response.vaults) })
+        set({ vaults: response.vaults })
       },
 
       async addVault(vaultPayload) {
         const sendCommand = useWebSocketStore.getState().sendCommand
         await sendCommand('storage.vault.add', vaultPayload)
+      },
+
+      async updateVault(vault) {
+        const sendCommand = useWebSocketStore.getState().sendCommand
+        const response = await sendCommand('storage.vault.update', vault)
+        const updatedVault = response.vault
+        set(state => ({ vaults: state.vaults.map(v => (v.id === updatedVault.id ? updatedVault : v)) }))
       },
 
       async removeVault({ id }) {

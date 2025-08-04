@@ -50,6 +50,8 @@ export interface WebSocketCommandMap {
     response: { vault: LocalDiskVault | S3Vault }
   }
 
+  'storage.vault.update': { payload: LocalDiskVault | S3Vault; response: { vault: LocalDiskVault | S3Vault } }
+
   'storage.vault.remove': { payload: { id: number }; response: null }
 
   'storage.vault.get': { payload: { id: number }; response: { vault: LocalDiskVault | S3Vault } }
@@ -62,7 +64,7 @@ export interface WebSocketCommandMap {
 
   'storage.apiKey.list.user': { payload: null; response: { keys: string /* JSON string of API keys */ } }
 
-  'storage.apiKey.add': { payload: S3APIKey; response: null }
+  'storage.apiKey.add': { payload: Partial<S3APIKey>; response: null }
 
   'storage.apiKey.remove': { payload: { id: number }; response: null }
 
@@ -149,4 +151,3 @@ export interface WebSocketCommandMap {
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']
 export type WSCommandResponse<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['response']
-export type JSONParsed<T> = T extends string ? any : T

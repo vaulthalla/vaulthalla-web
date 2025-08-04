@@ -13,6 +13,7 @@ export const metadata: Metadata = { title: 'Vaulthalla', description: 'The Final
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <AuthRefresher />
       <body className={`${geistSans.variable} ${geistMono.variable} bg-background antialiased`}>
         <WebSocketProvider />
         {children}

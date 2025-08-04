@@ -24,11 +24,11 @@ const UserFullCard = ({ id }: { id: number }) => {
     }
 
     fetchUser()
-  }, [id])
+  }, [id, user])
 
   if (!user) return <CircleNotchLoader />
 
-  const Icon = getUserIcon(user.global_role.display_name)
+  const Icon = getUserIcon(user.role.name)
 
   return (
     <motion.div
@@ -47,7 +47,7 @@ const UserFullCard = ({ id }: { id: number }) => {
             <span className="font-medium text-gray-400">Email:</span> {user.email}
           </p>
           <p>
-            <span className="font-medium text-gray-400">Role:</span> {user.global_role.display_name}
+            <span className="font-medium text-gray-400">Role:</span> {user.role.name}
           </p>
         </div>
 

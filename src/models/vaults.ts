@@ -73,12 +73,3 @@ export class S3Vault implements IS3 {
     if (data) Object.assign(this, data)
   }
 }
-
-export const toVaultArray = (vaults: any[]): (LocalDiskVault | S3Vault)[] => {
-  return vaults.map(v => {
-    if (v.type === 'local') return new LocalDiskVault(v)
-    if (v.type === 's3') return new S3Vault(v)
-
-    throw new Error(`Unknown vault type: ${v.type}`)
-  })
-}

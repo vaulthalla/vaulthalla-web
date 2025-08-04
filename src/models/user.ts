@@ -1,4 +1,4 @@
-import { Role, UserRole } from '@/models/role'
+import { UserRole, VaultRole } from '@/models/role'
 
 export interface IUser {
   id: number
@@ -9,10 +9,10 @@ export interface IUser {
   last_login: string
   is_active: boolean
   role: UserRole
-  roles: Role[]
+  roles: VaultRole[]
 }
 
-export class User {
+export class User implements IUser {
   id: number
   name: string
   email: string
@@ -21,7 +21,7 @@ export class User {
   last_login: string
   is_active: boolean
   role: UserRole
-  roles: Role[]
+  roles: VaultRole[]
 
   constructor(data: IUser) {
     this.id = data.id
@@ -32,7 +32,7 @@ export class User {
     this.last_login = data.last_login
     this.is_active = data.is_active
     this.role = UserRole.fromData(data.role)
-    this.roles = data.roles.map(role => Role.fromData(role))
+    this.roles = data.roles.map(role => VaultRole.fromData(role))
   }
 
   static fromJSON(data: IUser): User {

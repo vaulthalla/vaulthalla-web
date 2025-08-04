@@ -3,12 +3,12 @@
 import { useApiKeyStore } from '@/stores/apiKeyStore'
 import { useVaultStore } from '@/stores/vaultStore'
 import { useForm, Controller } from 'react-hook-form'
-import { motion } from 'framer-motion'
+import * as motion from 'motion/react-client'
 import { Button } from '@/components/Button'
 import { LocalDiskVault, S3Vault } from '@/models/vaults'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import Vault from '@/fa-duotone/vault.svg'
+import VaultIcon from '@/fa-duotone/vault.svg'
 
 type VaultFormValues =
   | ({ type: 'local' } & Pick<LocalDiskVault, 'name' | 'mount_point'>)
@@ -32,10 +32,13 @@ const VaultForm = ({ initialValues }: { initialValues?: Partial<LocalDiskVault |
   const type = watch('type')
 
   const onSubmit = async (data: VaultFormValues) => {
-    // TODO: Implement updateVault in vaultStore
     setIsSubmitting(true)
-    if (initialValues?.name) await updateVault(data)
-    else await addVault(data)
+    if (initialValues?.name || initialValues?.id) {
+      let vault: LocalDiskVault | S3Vault
+      if (type === 'local') vault = new LocalDiskVault({ ...initialValues, ...data })
+      else vault = new S3Vault({ ...initialValues, ...data })
+      await updateVault(vault)
+    } else await addVault(data)
     router.push('/dashboard/vaults')
   }
 
@@ -89,7 +92,7 @@ const VaultForm = ({ initialValues }: { initialValues?: Partial<LocalDiskVault |
   if (isSubmitting)
     return (
       <div className="text-primary flex h-screen w-full flex-col items-center justify-center space-y-4">
-        <Vault className="text-primary h-20 w-20 animate-pulse fill-current" />
+        <VaultIcon className="text-primary h-20 w-20 animate-pulse fill-current" />
         <p className="text-xl font-semibold tracking-wide">Preparing your new Vault...</p>
         <p className="text-primary text-sm">This should only take a moment.</p>
       </div>
