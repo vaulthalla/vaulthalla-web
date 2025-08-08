@@ -8,7 +8,7 @@ import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
 import Link from 'next/link'
 import { Button } from '@/components/Button'
 
-const UsersList = () => {
+const UsersClientPage = () => {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -32,7 +32,7 @@ const UsersList = () => {
       <div>
         <h1 className="text-4xl">Users</h1>
         {users.map(user => (
-          <Link href="/dashboard/users/[id]" as={`/dashboard/users/${user.id}`} key={user.id}>
+          <Link href="/dashboard/users/[name]" as={`/dashboard/users/${user.name}`} key={user.id}>
             <UserCard {...user} />
           </Link>
         ))}
@@ -46,4 +46,4 @@ const UsersList = () => {
   )
 }
 
-export default UsersList
+export default UsersClientPage

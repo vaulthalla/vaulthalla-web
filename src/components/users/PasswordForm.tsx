@@ -23,10 +23,11 @@ const schema = z
 
 type PasswordFormInputs = z.infer<typeof schema>
 
-const PasswordForm = ({ id }: { id: number }) => {
+const PasswordForm = ({ name }: { name: string }) => {
   const router = useRouter()
-  const { changePassword, getUser } = useAuthStore()
+  const { changePassword, getUserByName } = useAuthStore()
   const [user, setUser] = useState<User | null>(null)
+  const adminPasswordIsDefault = useAuthStore.getState().adminPasswordIsDefault
 
   const {
     register,
@@ -37,7 +38,7 @@ const PasswordForm = ({ id }: { id: number }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const fetchedUser = await getUser(id)
+        const fetchedUser = await getUserByName({ name })
         setUser(fetchedUser)
       } catch (err) {
         console.error('Failed to fetch user:', err)
@@ -45,11 +46,12 @@ const PasswordForm = ({ id }: { id: number }) => {
     }
 
     fetchUser()
-  }, [id, getUser])
+  }, [name, getUserByName])
 
   const onSubmit = async (data: PasswordFormInputs) => {
     try {
-      await changePassword(id, data.old_password, data.new_password)
+      if (!user || !user.id) throw new Error('User not found')
+      await changePassword(user?.id, data.old_password, data.new_password)
       router.push('/dashboard/users')
     } catch (err) {
       console.error('Failed to change password:', err)
@@ -59,17 +61,30 @@ const PasswordForm = ({ id }: { id: number }) => {
 
   if (!user) return <CircleNotchLoader />
 
+  const AdminDefaultWarning = () =>
+    adminPasswordIsDefault && (
+      <div className="bg-black/40 px-2 py-6 text-center">
+        <h2 className="text-destructive mb-4 text-3xl">WARNING</h2>
+        <h3 className="text-destructive mb-2 text-lg">Default password detected for admin.</h3>
+        <h3 className="text-warning">Please set a new password to proceed.</h3>
+      </div>
+    )
+
   return (
-    <div className="mx-auto mt-12 max-w-sm space-y-4 rounded-3xl bg-white p-6 shadow dark:bg-gray-800">
-      <h2 className="text-2xl font-semibold">Change Password for User</h2>
+    <div className="mx-auto mt-12 h-fit max-w-sm space-y-4 rounded-3xl bg-white p-6 shadow dark:bg-gray-800">
+      <h2 className="text-2xl font-semibold">Change Password for {user.name}</h2>
       <div className="text-gray-300">
         <h3>
           Name: <span className="text-gray-50">{user.name}</span>
         </h3>
-        <h3>
-          Email: <span className="text-gray-50">{user.email}</span>
-        </h3>
+        {user.email && (
+          <h3>
+            Email: <span className="text-gray-50">{user.email}</span>
+          </h3>
+        )}
       </div>
+
+      <AdminDefaultWarning />
 
       <form onSubmit={handleSubmit(onSubmit)} className="mt-4 flex max-w-md flex-col gap-4 text-sm">
         <div hidden>

@@ -27,7 +27,7 @@ export interface WebSocketCommandMap {
     response: { user: User }
   }
 
-  'auth.isAuthenticated': { payload: null; response: { isAuthenticated: boolean; user?: User } }
+  'auth.isAuthenticated': { payload: { token: string }; response: { isAuthenticated: boolean; user?: User } }
 
   'auth.refresh': { payload: null; response: { token: string; user: User } }
 
@@ -38,6 +38,10 @@ export interface WebSocketCommandMap {
   'auth.users.list': { payload: null; response: { users: User[] } }
 
   'auth.user.get': { payload: { id: number }; response: { user: User } }
+
+  'auth.user.get.byName': { payload: { name: string }; response: { user: User } }
+
+  'auth.admin.default_password': { payload: null; response: { isDefault: boolean } }
 
   // Vault commands
 

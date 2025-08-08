@@ -9,7 +9,7 @@ import ToggleNavButton from '@/components/sidebar/ToggleNavButton'
 import Logo from '@/components/Logo'
 import Bars from '@/fa-light/bars.svg'
 
-export const Sidebar = () => {
+const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const { user } = useAuthStore()
   const router = useRouter()
@@ -63,3 +63,5 @@ export const Sidebar = () => {
     </aside>
   )
 }
+
+export default Sidebar

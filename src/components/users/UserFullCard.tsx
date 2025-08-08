@@ -9,14 +9,14 @@ import { getUserIcon } from '@/util/icons/getUserIcon'
 import Link from 'next/link'
 import { Button } from '@/components/Button'
 
-const UserFullCard = ({ id }: { id: number }) => {
+const UserFullCard = ({ name }: { name: string }) => {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
     const fetchUser = async () => {
       if (user) return
       try {
-        const fetchedUser = await useAuthStore.getState().getUser(id)
+        const fetchedUser = await useAuthStore.getState().getUserByName({ name })
         setUser(fetchedUser)
       } catch (err) {
         console.error('Failed to fetch user:', err)
@@ -24,7 +24,7 @@ const UserFullCard = ({ id }: { id: number }) => {
     }
 
     fetchUser()
-  }, [id, user])
+  }, [name, user])
 
   if (!user) return <CircleNotchLoader />
 
@@ -60,10 +60,10 @@ const UserFullCard = ({ id }: { id: number }) => {
           </p>
         </div>
       </div>
-      <Link href="/dashboard/users/[slug]/edit" as={`/dashboard/users/${user.id}/edit`}>
+      <Link href="/dashboard/users/[name]/edit" as={`/dashboard/users/${name}/edit`}>
         <Button variant="default">Edit</Button>
       </Link>
-      <Link href="/dashboard/users/[slug]/change-password" as={`/dashboard/users/${user.id}/change-password`}>
+      <Link href="/dashboard/users/[name]/change-password" as={`/dashboard/users/${name}/change-password`}>
         <Button variant="glass" className="mt-2">
           Change Password
         </Button>

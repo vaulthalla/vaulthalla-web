@@ -13,6 +13,7 @@ interface AuthState {
   user: User | null
   loading: boolean
   error: string | null
+  adminPasswordIsDefault: boolean | null
 
   setTokenCookie: (token: string | null) => void
   login: (payload: WSCommandPayload<'auth.login'>) => Promise<void>
@@ -25,6 +26,8 @@ interface AuthState {
   fetchUser: () => Promise<void>
   getUser: (id: number) => Promise<User | null>
   getUsers: () => Promise<User[]>
+  fetchAdminPasswordIsDefault: () => Promise<void>
+  getUserByName: (payload: WSCommandPayload<'auth.user.get.byName'>) => Promise<User>
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -34,6 +37,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       loading: false,
       error: null,
+      adminPasswordIsDefault: null,
 
       setTokenCookie: (token: string | null) => {
         if (typeof document === 'undefined') return
@@ -148,12 +152,15 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true, error: null })
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
-          const response = await sendCommand('auth.isAuthenticated', null)
+          const token = get().token
+          if (!token) return false
+          const response = await sendCommand('auth.isAuthenticated', { token })
 
           set({ user: response.user })
           return true
         } catch (err) {
           set({ error: getErrorMessage(err), user: null })
+          console.log(err)
           return false
         } finally {
           set({ loading: false })
@@ -211,8 +218,6 @@ export const useAuthStore = create<AuthState>()(
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.users.list', null)
 
-          console.log(response)
-
           return response.users
         } catch (err) {
           set({ error: getErrorMessage(err) || 'Failed to fetch users' })
@@ -221,10 +226,37 @@ export const useAuthStore = create<AuthState>()(
           set({ loading: false })
         }
       },
+
+      fetchAdminPasswordIsDefault: async () => {
+        try {
+          await useWebSocketStore.getState().waitForConnection()
+          const sendCommand = useWebSocketStore.getState().sendCommand
+          const response = await sendCommand('auth.admin.default_password', null)
+          set({ adminPasswordIsDefault: response.isDefault })
+        } catch (err) {
+          set({ error: getErrorMessage(err) || 'Failed to fetch admin password' })
+          throw err
+        }
+      },
+
+      getUserByName: async ({ name }) => {
+        try {
+          const sendCommand = useWebSocketStore.getState().sendCommand
+          const response = await sendCommand('auth.user.get.byName', { name })
+          return response.user
+        } catch (err) {
+          set({ error: getErrorMessage(err) || 'Failed to fetch user by name' })
+          throw err
+        }
+      },
     }),
     {
       name: 'vaulthalla-auth',
-      partialize: state => ({ token: state.token, user: state.user }),
+      partialize: state => ({
+        token: state.token,
+        user: state.user,
+        adminPasswordIsDefault: state.adminPasswordIsDefault,
+      }),
       onRehydrateStorage: () => () => {
         if (!useAuthStore.getState().token) return
 

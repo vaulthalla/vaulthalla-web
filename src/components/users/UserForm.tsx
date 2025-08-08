@@ -9,17 +9,23 @@ import { Button } from '@/components/Button'
 import { motion } from 'framer-motion'
 import { User } from '@/models/user'
 import CircleNotchLoader from '@/components/loading/CircleNotchLoader'
+import { userRoleOptions } from '@/util/userRoleMap'
 
-type FormData = User & { password: string }
+type FormData = {
+  id: number
+  name: string
+  email: string
+  password: string
+  role: string // string key like 'admin', 'super_admin', etc.
+  is_active: boolean | string // react-hook-form may give it as string from <select>
+}
 
-const roleOptions = ['Administrator', 'User', 'Guest', 'Moderator', 'Super Administrator']
-
-const UserForm = ({ id }: { id?: number }) => {
+const UserForm = ({ name }: { name?: string }) => {
   const router = useRouter()
-  const { registerUser, updateUser, getUser } = useAuthStore()
+  const { registerUser, updateUser, getUserByName } = useAuthStore()
   const [error, setError] = useState('')
   const [user, setUser] = useState<User | null>(null)
-  const isEdit = !!id
+  const isEdit = !!name
 
   const {
     register,
@@ -30,26 +36,27 @@ const UserForm = ({ id }: { id?: number }) => {
 
   // Fetch user if editing
   useEffect(() => {
-    if (isEdit && id) {
-      getUser(id)
+    if (isEdit && name) {
+      getUserByName({ name })
         .then(fetchedUser => {
           setUser(fetchedUser)
-          reset({ ...fetchedUser, password: '' })
+          console.log(fetchedUser)
+          reset({ ...fetchedUser, role: fetchedUser.role.name, password: '' })
         })
         .catch(err => {
           setError(getErrorMessage(err) || 'Failed to fetch user')
         })
     }
-  }, [id, isEdit, getUser, reset])
+  }, [name, isEdit, getUserByName, reset])
 
   const onSubmit = async (data: FormData) => {
     setError('')
     try {
       if (isEdit && user) {
         data.is_active = Boolean(data.is_active)
-        await updateUser({ ...data, id: user.id, role: String(data.role) })
+        await updateUser({ ...data, id: user.id, is_active: Boolean(data.is_active) })
       } else {
-        await registerUser(data.name, data.email, data.password, Boolean(data.is_active), String(data.role.role_id))
+        await registerUser(data.name, data.email, data.password, Boolean(data.is_active), data.role)
       }
       router.push('/dashboard/users')
     } catch (err) {
@@ -102,9 +109,9 @@ const UserForm = ({ id }: { id?: number }) => {
       <select
         {...register('role', { required: 'Role is required' })}
         className="w-full rounded border px-3 py-2 dark:bg-gray-700">
-        {roleOptions.map(role => (
-          <option key={role} value={role}>
-            {role}
+        {userRoleOptions.map(role => (
+          <option key={role.value} value={role.value}>
+            {role.label}
           </option>
         ))}
       </select>

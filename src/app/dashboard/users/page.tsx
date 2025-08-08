@@ -1,9 +1,9 @@
-import UsersList from '@/components/users/UsersList'
+import UsersClientPage from '@/app/dashboard/users/page.client'
 
 const UsersPage = () => {
   return (
     <div className="text-center">
-      <UsersList />
+      <UsersClientPage />
     </div>
   )
 }
