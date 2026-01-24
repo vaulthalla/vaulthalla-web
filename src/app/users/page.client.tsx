@@ -32,12 +32,12 @@ const UsersClientPage = () => {
       <div>
         <h1 className="text-4xl">Users</h1>
         {users.map(user => (
-          <Link href="/dashboard/users/[name]" as={`/dashboard/users/${user.name}`} key={user.id}>
+          <Link href="/src/app/users/[name]" as={`/dashboard/users/${user.name}`} key={user.id}>
             <UserCard {...user} />
           </Link>
         ))}
       </div>
-      <Link href="/dashboard/users/add">
+      <Link href="/src/app/users/add">
         <Button type="button" variant="default">
           + Add New User
         </Button>

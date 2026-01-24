@@ -43,24 +43,27 @@ const Sidebar = () => {
   )
 
   return (
-    <aside
-      className={`h-full ${
-        isCollapsed ? 'w-20' : 'w-72'
-      } border-r border-white/20 bg-gradient-to-b from-white/10 to-black/20 shadow-[0_0_60px_20px_rgba(100,255,255,0.1)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 ease-in-out`}>
-      <div className={`flex h-full flex-col space-y-3 ${isCollapsed ? 'items-center p-2' : 'p-6'}`}>
-        <div
-          className={`text-primary border-spacing-4 rounded-md border-2 ${isCollapsed ? 'mx-auto w-fit' : 'absolute top-4 left-4'}`}>
-          <Bars className="text-primary fill-current p-1 text-4xl" onClick={() => setIsCollapsed(prev => !prev)} />
+    path !== '/login'
+    && path !== '/register' && (
+      <aside
+        className={`h-full ${
+          isCollapsed ? 'w-20' : 'w-72'
+        } border-r border-white/20 bg-gradient-to-b from-white/10 to-black/20 shadow-[0_0_60px_20px_rgba(100,255,255,0.1)] backdrop-blur-xl backdrop-saturate-150 transition-all duration-300 ease-in-out`}>
+        <div className={`flex h-full flex-col space-y-3 ${isCollapsed ? 'items-center p-2' : 'p-6'}`}>
+          <div
+            className={`text-primary border-spacing-4 rounded-md border-2 ${isCollapsed ? 'mx-auto w-fit' : 'absolute top-4 left-4'}`}>
+            <Bars className="text-primary fill-current p-1 text-4xl" onClick={() => setIsCollapsed(prev => !prev)} />
+          </div>
+          <Banner />
+          <ToggleNavButton isCollapsed={isCollapsed} />
+          <Spacer />
+          <Navbar isCollapsed={isCollapsed} />
+          <Spacer />
+          <LogoutButton />
+          <Footer />
         </div>
-        <Banner />
-        <ToggleNavButton isCollapsed={isCollapsed} />
-        <Spacer />
-        <Navbar isCollapsed={isCollapsed} />
-        <Spacer />
-        <LogoutButton />
-        <Footer />
-      </div>
-    </aside>
+      </aside>
+    )
   )
 }
 

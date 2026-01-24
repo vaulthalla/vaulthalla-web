@@ -1,4 +1,4 @@
-import VaultClientPage from '@/app/dashboard/vaults/[id]/page.client'
+import VaultClientPage from '@/app/vaults/[id]/page.client'
 
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

@@ -1,4 +1,4 @@
-import UsersClientPage from '@/app/dashboard/users/page.client'
+import UsersClientPage from '@/app/users/page.client'
 
 const UsersPage = () => {
   return (

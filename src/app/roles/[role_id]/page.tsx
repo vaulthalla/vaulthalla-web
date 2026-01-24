@@ -1,4 +1,4 @@
-import EditRoleClientPage from '@/app/dashboard/roles/[role_id]/page.client'
+import EditRoleClientPage from '@/app/roles/[role_id]/page.client'
 
 const EditRolePage = async ({ params }: { params: Promise<{ role_id: string }> }) => {
   const { role_id } = await params

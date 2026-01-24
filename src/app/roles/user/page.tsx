@@ -1,4 +1,4 @@
-import UserRolesClientPage from '@/app/dashboard/roles/user/page.client'
+import UserRolesClientPage from '@/app/roles/user/page.client'
 
 const RolesUserPage = () => <UserRolesClientPage />
 

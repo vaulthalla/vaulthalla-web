@@ -32,20 +32,21 @@ const Navbar = ({ isCollapsed }: NavbarProps) => {
   const pathname = usePathname()
 
   const dashboardNavItems: navItem[] = [
-    { label: 'Vaults', href: '/dashboard/vaults', icon: Vault },
-    { label: 'API Keys', href: '/dashboard/api-keys', icon: KeySkeleton },
-    { label: 'Users', href: '/dashboard/users', icon: UserGroup },
+    { label: 'Dashboard', href: '/dashboard', icon: Vault },
+    { label: 'Vaults', href: '/vaults', icon: Vault },
+    { label: 'API Keys', href: '/api-keys', icon: KeySkeleton },
+    { label: 'Users', href: '/users', icon: UserGroup },
     {
       label: 'Roles',
-      href: '/dashboard/roles',
+      href: '/roles',
       icon: ShieldKeyhole,
       subItems: [
-        { label: 'User Roles', href: '/dashboard/roles/user', icon: UserShield },
-        { label: 'Vault Roles', href: '/dashboard/roles/vault', icon: VaultShield },
+        { label: 'User Roles', href: '/roles/user', icon: UserShield },
+        { label: 'Vault Roles', href: '/roles/vault', icon: VaultShield },
       ],
     },
-    { label: 'Groups', href: '/dashboard/groups', icon: PeopleGroup },
-    { label: 'Settings', href: '/dashboard/settings', icon: Sliders },
+    { label: 'Groups', href: '/groups', icon: PeopleGroup },
+    { label: 'Settings', href: '/settings', icon: Sliders },
   ]
 
   const filesNavItems: navItem[] = [{ label: 'Add Directory', href: '/files/add-directory', icon: FolderPlus }]

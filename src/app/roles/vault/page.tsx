@@ -1,4 +1,4 @@
-import VaultRolesClientPage from '@/app/dashboard/roles/vault/page.client'
+import VaultRolesClientPage from '@/app/roles/vault/page.client'
 
 const VaultRolesPage = () => <VaultRolesClientPage />
 

@@ -1,4 +1,4 @@
-import GroupsClientPage from '@/app/dashboard/groups/page.client'
+import GroupsClientPage from '@/app/groups/page.client'
 
 const GroupsPage = () => {
   return (
