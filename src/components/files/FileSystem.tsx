@@ -1,11 +1,9 @@
 'use client'
 
 import React, { useMemo, useState, memo, useRef } from 'react'
-import * as motion from 'motion/react-client'
-import ArrowRight from '@/fa-duotone/arrow-right.svg'
 import Folder from '@/fa-duotone/folder.svg'
 import FileIcon from '@/fa-duotone/file.svg'
-import { Table, TableHeader, TableBody, TableRow, TableCell, TableHead } from '@/components/table'
+import { Table, TableHeader, TableBody, TableRow, TableHead } from '@/components/table'
 import { ScrollArea } from '@/components/ScrollArea'
 import { CardContent } from '@/components/card/CardContent'
 import { Card } from '@/components/card/Card'
@@ -13,43 +11,25 @@ import type { File as FileModel } from '@/models/file'
 import { Directory } from '@/models/directory'
 import { getPreviewUrl } from '@/util/getUrl'
 import { FilePreviewModal } from './FilePreviewModal'
-import Image from 'next/image'
 import { useFSStore } from '@/stores/fsStore'
-import { ContextMenu } from '@/components/files/ContextMenu' // Assumes this exists in same folder
+import { ContextMenu } from '@/components/files/ContextMenu'
+import { formatSize } from '@/util/formatSize'
+import { FileSystemProps, RowModel } from '@/components/files/types'
+import Row from '@/components/files/Row' // Assumes this exists in same folder
 
 const isDirectory = (file: FileModel | Directory): file is Directory => (file as Directory).file_count !== undefined
 
-const formatSize = (item: FileModel | Directory): string => {
-  const bytes = item.size_bytes
-  if (!bytes) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1)
-  const val = bytes / 1024 ** i
-  return `${val.toFixed(val < 10 ? 1 : 0)} ${units[i]}`
-}
-
-interface FileSystemProps {
-  files: (FileModel | Directory)[]
-  onNavigate: (path: string) => void
-}
-
-interface RowInfo {
-  key: string
-  icon: React.ReactNode
-  size: string
-  modified: string
-  previewUrl?: string | null
-}
-
-type RowModel = RowInfo & (FileModel | Directory)
-
 export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }) => {
-  const [hovered, setHovered] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<FileModel | null>(null)
   const [contextMenu, setContextMenu] = useState<{ mouseX: number; mouseY: number; row: RowModel } | null>(null)
   const tableRef = useRef<HTMLDivElement>(null)
 
   const { setCopiedItem, copiedItem, pasteCopiedItem } = useFSStore()
+
+  const handleOpenFile = React.useCallback((f: FileModel) => setSelectedFile(f), [])
+  const handleRowContextMenu = React.useCallback((e: React.MouseEvent, row: RowModel) => {
+    setContextMenu({ mouseX: e.clientX, mouseY: e.clientY, row })
+  }, [])
 
   const handleDelete = (entryName: string) => {
     useFSStore
@@ -64,7 +44,7 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
   const rows: RowModel[] = useMemo(
     () =>
       files.map(f => {
-        const key = f.path || f.name
+        const key = `${f.vault_id}:${f.path ?? f.name}`
         const previewUrl =
           !isDirectory(f) ?
             `${getPreviewUrl()}?vault_id=${f.vault_id}&path=${encodeURIComponent(f.path || f.name)}&size=64`
@@ -98,31 +78,13 @@ export const FileSystem: React.FC<FileSystemProps> = memo(({ files, onNavigate }
   const Body = () => (
     <TableBody>
       {rows.map(r => (
-        <motion.tr
+        <Row
           key={r.key}
-          initial={{ opacity: 0, x: -6 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 6 }}
-          whileHover={{ scale: 1.01 }}
-          className="cursor-pointer border-b border-gray-800/60 transition-colors hover:bg-gray-800/70"
-          onContextMenu={e => {
-            e.preventDefault()
-            setContextMenu({ mouseX: e.clientX, mouseY: e.clientY, row: r })
-          }}>
-          <TableCell
-            className="flex items-center gap-2 pl-2 text-white"
-            onMouseEnter={() => setHovered(r.key)}
-            onMouseLeave={() => setHovered(null)}
-            onClick={() => (isDirectory(r) ? onNavigate(r.path ?? r.name) : setSelectedFile(r as FileModel))}>
-            {!isDirectory(r) && r.previewUrl ?
-              <Image src={r.previewUrl} alt={r.name} height={30} width={30} className="rounded" />
-            : r.icon}
-            <span className="max-w-[260px] truncate select-none">{r.name}</span>
-            {isDirectory(r) && hovered === r.key && <ArrowRight className="text-primary ml-1 h-4 w-4" />}
-          </TableCell>
-          <TableCell className="text-gray-200">{r.size}</TableCell>
-          <TableCell className="text-gray-300">{r.modified}</TableCell>
-        </motion.tr>
+          r={r}
+          onNavigate={onNavigate}
+          onOpenFile={handleOpenFile}
+          onContextMenu={handleRowContextMenu}
+        />
       ))}
     </TableBody>
   )

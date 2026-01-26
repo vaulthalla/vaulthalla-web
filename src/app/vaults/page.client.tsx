@@ -21,7 +21,7 @@ const VaultsClientPage = () => {
       <div>
         <ul>
           {vaults.map(vault => (
-            <Link href={`/src/app/vaults/${vault.id}`} key={vault.id}>
+            <Link href={`/vaults/${vault.id}`} key={vault.id}>
               <li className="mb-4">
                 <VaultCard {...vault} key={vault.id} />
               </li>
@@ -36,7 +36,7 @@ const VaultsClientPage = () => {
       <div className="mb-4 text-center">
         <h1 className="text-4xl font-semibold">Vaults</h1>
         <p>Manage your vaults here.</p>
-        <Link href="/src/app/vaults/add">
+        <Link href="/vaults/add">
           <Button type="button">
             <Plus className="text-secondary mr-2 fill-current" /> Add Vault
           </Button>
