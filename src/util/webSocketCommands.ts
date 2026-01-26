@@ -1,4 +1,5 @@
 import { LocalDiskVault, S3Vault, Vault } from '@/models/vaults'
+import { VaultStats } from '@/models/stats/vaultStats'
 import { APIKey, S3APIKey } from '@/models/apiKey'
 import { User } from '@/models/user'
 import { VaultRole, UserRole, IRole } from '@/models/role'
@@ -7,6 +8,7 @@ import { Settings } from '@/models/settings'
 import { Group } from '@/models/group'
 import { File, IFileUpload } from '@/models/file'
 import { Directory } from '@/models/directory'
+import { CacheStats } from '@/models/stats/cacheStats'
 
 export interface WebSocketCommandMap {
   // Auth
@@ -151,6 +153,11 @@ export interface WebSocketCommandMap {
   'fs.entry.copy': { payload: { vault_id: number; from: string; to: string }; response: { from: string; to: string } }
 
   'fs.entry.rename': { payload: { vault_id: number; from: string; to: string }; response: { from: string; to: string } }
+
+  // stats
+  'stats.vault': { payload: { vault_id: number }; response: { stats: VaultStats } }
+
+  'stats.cache': { payload: null; response: { stats: CacheStats } }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']
