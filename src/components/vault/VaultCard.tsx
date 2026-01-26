@@ -1,6 +1,6 @@
 'use client'
 
-import { S3Vault, Vault } from '@/models/vaults'
+import { getVaultType, S3Vault, Vault } from '@/models/vaults'
 import ShieldCheck from '@/fa-regular/shield-check.svg'
 import AlertTriangle from '@/fa-regular/triangle-exclamation.svg'
 import * as motion from 'motion/react-client'
@@ -31,17 +31,6 @@ const VaultCard = (vault: Vault) => {
     getProviderName()
   }, [vault])
 
-  const getType = (type: string) => {
-    switch (type) {
-      case 'local':
-        return 'Local Disk Vault'
-      case 's3':
-        return 'S3 Vault'
-      default:
-        return 'Unknown Type'
-    }
-  }
-
   const Icon = getVaultIcon({ type: vault.type, provider: provider })
 
   return (
@@ -68,7 +57,7 @@ const VaultCard = (vault: Vault) => {
           <span className="font-medium text-gray-300">Owner:</span> {vault.owner}
         </p>
         <p>
-          <span className="font-medium text-gray-300">Type:</span> {getType(vault.type)}
+          <span className="font-medium text-gray-300">Type:</span> {getVaultType(vault.type)}
         </p>
         <p>
           <span className="font-medium text-gray-300">Created:</span>{' '}

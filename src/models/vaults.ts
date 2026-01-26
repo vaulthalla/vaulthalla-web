@@ -73,3 +73,14 @@ export class S3Vault implements IS3 {
     if (data) Object.assign(this, data)
   }
 }
+
+export const getVaultType = (type: string) => {
+  switch (type) {
+    case 'local':
+      return 'Local Disk Vault'
+    case 's3':
+      return 'S3 Vault'
+    default:
+      return 'Unknown Type'
+  }
+}
