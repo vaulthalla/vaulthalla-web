@@ -157,7 +157,9 @@ export interface WebSocketCommandMap {
   // stats
   'stats.vault': { payload: { vault_id: number }; response: { stats: VaultStats } }
 
-  'stats.cache': { payload: null; response: { stats: CacheStats } }
+  'stats.fs.cache': { payload: null; response: { stats: CacheStats } }
+
+  'stats.http.cache': { payload: null; response: { stats: CacheStats } }
 }
 
 export type WSCommandPayload<K extends keyof WebSocketCommandMap> = WebSocketCommandMap[K]['payload']

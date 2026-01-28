@@ -3,23 +3,27 @@
 import React, { useEffect, useMemo, useRef } from 'react'
 import * as echarts from 'echarts/core'
 import { BarChart, PieChart, ScatterChart } from 'echarts/charts'
-import { GridComponent, TooltipComponent, LegendComponent, TitleComponent } from 'echarts/components'
+import { GridComponent, TooltipComponent, LegendComponent, TitleComponent, GraphicComponent } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 
 import { StatsCard } from '@/components/stats/StatsCard'
 import { useStatsStore } from '@/stores/statsStore'
 import { CacheStats } from '@/models/stats/cacheStats'
+import type { CacheStatsWrapper } from '@/stores/statsStore' // adjust import path if needed
 
 echarts.use([
   BarChart,
   PieChart,
   ScatterChart,
   GridComponent,
+  GraphicComponent,
   TooltipComponent,
   LegendComponent,
   TitleComponent,
   CanvasRenderer,
 ])
+
+type CacheStatsSource = 'fs' | 'http'
 
 function formatBytes(bytes: number): string {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 B'
@@ -46,12 +50,45 @@ const StatPill = ({ label, value }: { label: string; value: React.ReactNode }) =
   </div>
 )
 
-export default function CacheStatsComponent() {
-  const cacheStats = useStatsStore(s => s.cacheStats)
-  const loading = useStatsStore(s => s.cacheStatsLoading)
-  const lastUpdated = useStatsStore(s => s.cacheStatsLastUpdated)
-  const startPolling = useStatsStore(s => s.startCacheStatsPolling)
-  const stopPolling = useStatsStore(s => s.stopCacheStatsPolling)
+function getSourceConfig(source: CacheStatsSource) {
+  if (source === 'http') {
+    return {
+      title: 'HTTP Cache',
+      subtitle: 'Preview & request-path performance',
+      // store selectors
+      selectWrapper: (s: any): CacheStatsWrapper => s.httpCacheStats,
+      startPolling: (s: any) => s.startHttpCacheStatsPolling,
+      stopPolling: (s: any) => s.stopHttpCacheStatsPolling,
+    }
+  }
+
+  // default fs
+  return {
+    title: 'FS Cache',
+    subtitle: 'Hot-path performance & memory footprint',
+    selectWrapper: (s: any): CacheStatsWrapper => s.fsCacheStats,
+    startPolling: (s: any) => s.startFsCacheStatsPolling,
+    stopPolling: (s: any) => s.stopFsCacheStatsPolling,
+  }
+}
+
+export default function CacheStatsComponent({
+  source = 'fs',
+  intervalMs = 7500,
+}: {
+  source?: CacheStatsSource
+  intervalMs?: number
+}) {
+  const cfg = getSourceConfig(source)
+
+  const wrapper = useStatsStore(cfg.selectWrapper)
+  const startPolling = useStatsStore(cfg.startPolling)
+  const stopPolling = useStatsStore(cfg.stopPolling)
+
+  const stats = wrapper?.data ?? new CacheStats({})
+  const loading = !!wrapper?.loading
+  const lastUpdated = wrapper?.lastUpdated ?? null
+  const error = wrapper?.error ?? null
 
   const pieRef = useRef<HTMLDivElement | null>(null)
   const barsRef = useRef<HTMLDivElement | null>(null)
@@ -59,12 +96,13 @@ export default function CacheStatsComponent() {
   const barsChartRef = useRef<echarts.EChartsType | null>(null)
 
   useEffect(() => {
-    startPolling(7500) // 5–10 sec is perfect; pick your vibe
+    startPolling(intervalMs)
     return () => stopPolling()
-  }, [startPolling, stopPolling])
+  }, [startPolling, stopPolling, intervalMs])
 
   const derived = useMemo(() => {
-    const s = cacheStats ?? new CacheStats({})
+    const s = stats ?? new CacheStats({})
+
     const hits = s.hits ?? 0
     const misses = s.misses ?? 0
     const denom = hits + misses
@@ -74,12 +112,12 @@ export default function CacheStatsComponent() {
     const cap = Math.max(0, s.capacity_bytes ?? 0)
     const free = cap > used ? cap - used : 0
 
-    const opCount = Math.max(0, s.op.count ?? 0)
-    const avgOpMs = opCount > 0 ? msFromUs(s.op.total_us ?? 0) / opCount : 0
-    const maxOpMs = msFromUs(s.op.max_us ?? 0)
+    const opCount = Math.max(0, s.op?.count ?? 0)
+    const avgOpMs = opCount > 0 ? msFromUs(s.op?.total_us ?? 0) / opCount : 0
+    const maxOpMs = msFromUs(s.op?.max_us ?? 0)
 
     return { s, hits, misses, hitRate, used, cap, free, opCount, avgOpMs, maxOpMs }
-  }, [cacheStats])
+  }, [stats])
 
   // init charts once
   useEffect(() => {
@@ -210,8 +248,19 @@ export default function CacheStatsComponent() {
 
   const right = (
     <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/70 backdrop-blur">
-      <span className={`h-1.5 w-1.5 rounded-full ${loading ? 'bg-amber-300/80' : 'bg-emerald-400/80'}`} />
-      {loading ? 'updating…' : 'live'}
+      <span
+        className={[
+          'h-1.5 w-1.5 rounded-full',
+          error ? 'bg-rose-400/80'
+          : loading ? 'bg-amber-300/80'
+          : 'bg-emerald-400/80',
+        ].join(' ')}
+      />
+      {error ?
+        'error'
+      : loading ?
+        'updating…'
+      : 'live'}
       {lastUpdated ?
         <span className="text-white/35">·</span>
       : null}
@@ -222,21 +271,24 @@ export default function CacheStatsComponent() {
   )
 
   return (
-    <StatsCard title="Cache" subtitle="Hot-path performance & memory footprint" right={right} className="w-full">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-[320px,1fr]">
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="text-xs font-semibold text-white/70">Hit / Miss</div>
-            <div className="text-[11px] text-white/45">{formatInt(derived.hits + derived.misses)} req</div>
+    <StatsCard title={cfg.title} subtitle={cfg.subtitle} right={right} className="w-full">
+      <div className="space-y-3">
+        {/* charts: stack on small, side-by-side on lg+ */}
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {/* Hit/Miss */}
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur">
+            <div className="mb-2 flex items-center justify-between">
+              <div className="text-xs font-semibold text-white/70">Hit / Miss</div>
+              <div className="text-[11px] text-white/45">{formatInt(derived.hits + derived.misses)} req</div>
+            </div>
+            <div ref={pieRef} className="h-[190px] w-full" />
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <StatPill label="Hits" value={formatInt(derived.hits)} />
+              <StatPill label="Misses" value={formatInt(derived.misses)} />
+            </div>
           </div>
-          <div ref={pieRef} className="h-[190px] w-full" />
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <StatPill label="Hits" value={formatInt(derived.hits)} />
-            <StatPill label="Misses" value={formatInt(derived.misses)} />
-          </div>
-        </div>
 
-        <div className="space-y-3">
+          {/* Memory & Churn */}
           <div className="rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur">
             <div className="mb-2 flex items-center justify-between">
               <div className="text-xs font-semibold text-white/70">Memory & Churn</div>
@@ -246,20 +298,27 @@ export default function CacheStatsComponent() {
             </div>
             <div ref={barsRef} className="h-[190px] w-full" />
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-            <StatPill label="Hit Rate" value={`${Math.round(derived.hitRate * 100)}%`} />
-            <StatPill label="Avg Miss Work" value={`${derived.avgOpMs.toFixed(2)} ms`} />
-            <StatPill label="Max Miss Work" value={`${derived.maxOpMs.toFixed(2)} ms`} />
-            <StatPill label="Reads" value={formatBytes(derived.s.bytes_read)} />
+        {!!error ?
+          <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 px-3 py-2 text-xs text-rose-200/90">
+            {error}
           </div>
+        : null}
 
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-            <StatPill label="Writes" value={formatBytes(derived.s.bytes_written)} />
-            <StatPill label="Inserts" value={formatInt(derived.s.inserts)} />
-            <StatPill label="Evictions" value={formatInt(derived.s.evictions)} />
-            <StatPill label="Invalidations" value={formatInt(derived.s.invalidations)} />
-          </div>
+        {/* pills: full width under charts */}
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          <StatPill label="Hit Rate" value={`${Math.round(derived.hitRate * 100)}%`} />
+          <StatPill label="Avg Miss Work" value={`${derived.avgOpMs.toFixed(2)} ms`} />
+          <StatPill label="Max Miss Work" value={`${derived.maxOpMs.toFixed(2)} ms`} />
+          <StatPill label="Reads" value={formatBytes(derived.s.bytes_read)} />
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+          <StatPill label="Writes" value={formatBytes(derived.s.bytes_written)} />
+          <StatPill label="Inserts" value={formatInt(derived.s.inserts)} />
+          <StatPill label="Evictions" value={formatInt(derived.s.evictions)} />
+          <StatPill label="Invalidations" value={formatInt(derived.s.invalidations)} />
         </div>
       </div>
     </StatsCard>
