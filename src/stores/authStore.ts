@@ -51,6 +51,7 @@ export const useAuthStore = create<AuthState>()(
       login: async ({ name, password }) => {
         set({ loading: true, error: null })
         try {
+          await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.login', { name, password })
 
@@ -68,6 +69,7 @@ export const useAuthStore = create<AuthState>()(
       registerUser: async (name, email, password, is_active, role) => {
         set({ loading: true, error: null })
         try {
+          await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.register', { name, email, password, is_active, role })
 
@@ -106,6 +108,7 @@ export const useAuthStore = create<AuthState>()(
 
       refreshToken: async () => {
         try {
+          await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.refresh', null)
 
@@ -136,6 +139,7 @@ export const useAuthStore = create<AuthState>()(
         set({ loading: true, error: null })
 
         try {
+          await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.me', null)
 
@@ -151,6 +155,7 @@ export const useAuthStore = create<AuthState>()(
       isUserAuthenticated: async () => {
         set({ loading: true, error: null })
         try {
+          await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           const token = get().token
           if (!token) return false
@@ -170,6 +175,7 @@ export const useAuthStore = create<AuthState>()(
       updateUser: async payload => {
         set({ loading: true, error: null })
         try {
+          await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.user.update', payload)
 
@@ -185,6 +191,7 @@ export const useAuthStore = create<AuthState>()(
       changePassword: async (id, old_password, new_password) => {
         set({ loading: true, error: null })
         try {
+          await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           await sendCommand('auth.user.change_password', { id, old_password, new_password })
         } catch (err) {
@@ -241,6 +248,7 @@ export const useAuthStore = create<AuthState>()(
 
       getUserByName: async ({ name }) => {
         try {
+          await useWebSocketStore.getState().waitForConnection()
           const sendCommand = useWebSocketStore.getState().sendCommand
           const response = await sendCommand('auth.user.get.byName', { name })
           return response.user

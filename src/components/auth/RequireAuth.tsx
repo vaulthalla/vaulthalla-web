@@ -14,12 +14,15 @@ export default function RequireAuth({ children }: { children: React.ReactNode })
   useEffect(() => {
     const check = async () => {
       await fetchAdminPasswordIsDefault()
-      const authed = await isUserAuthenticated()
+      let authed = await isUserAuthenticated()
 
       if (!process.env.NEXT_PUBLIC_VAULTHALLA_DEV_MODE && adminPasswordIsDefault && authed)
         router.replace('/dashboard/users/admin/change-password')
 
       if (!authed) await useAuthStore.getState().refreshToken()
+
+      authed = await isUserAuthenticated()
+      if (!authed) router.replace('/login')
 
       setChecked(true)
     }
