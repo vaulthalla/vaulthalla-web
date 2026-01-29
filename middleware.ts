@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export const config = { matcher: ['/((?!dashboard|login|api|_next/static|_next/image|favicon.ico).*)'] }
+export const config = { matcher: ['/((?!login|api|_next|favicon.ico|robots.txt|sitemap.xml).*)'] }
 
 export async function middleware(req: NextRequest) {
   const url = new URL('/api/auth/session', req.url)
@@ -14,7 +14,7 @@ export async function middleware(req: NextRequest) {
   if (!res.ok) {
     const redir = req.nextUrl.clone()
     redir.pathname = '/login'
-    redir.searchParams.set('next', req.nextUrl.pathname)
+    redir.searchParams.set('next', req.nextUrl.pathname + req.nextUrl.search)
     return NextResponse.redirect(redir)
   }
 
