@@ -24,8 +24,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => (
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <AuthRefresher />
       <body className={`${geistSans.variable} ${geistMono.variable} bg-background antialiased`}>
+        <AuthRefresher />
         <WebSocketProvider />
         <MainLayout>{children}</MainLayout>
       </body>

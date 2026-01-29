@@ -15,7 +15,6 @@ interface AuthState {
   error: string | null
   adminPasswordIsDefault: boolean | null
 
-  setTokenCookie: (token: string | null) => void
   login: (payload: WSCommandPayload<'auth.login'>) => Promise<void>
   registerUser: (name: string, email: string, password: string, is_active: boolean, role: string) => Promise<void>
   updateUser: (payload: WSCommandPayload<'auth.user.update'>) => Promise<void>
@@ -39,15 +38,6 @@ export const useAuthStore = create<AuthState>()(
       error: null,
       adminPasswordIsDefault: null,
 
-      setTokenCookie: (token: string | null) => {
-        if (typeof document === 'undefined') return
-        if (token) {
-          document.cookie = `token=${token}; path=/; secure; sameSite=Strict`
-        } else {
-          document.cookie = 'token=; Max-Age=0; path=/'
-        }
-      },
-
       login: async ({ name, password }) => {
         set({ loading: true, error: null })
         try {
@@ -56,7 +46,6 @@ export const useAuthStore = create<AuthState>()(
           const response = await sendCommand('auth.login', { name, password })
 
           set({ token: response.token, user: response.user })
-          get().setTokenCookie(response.token)
           refreshAttempts = 0
         } catch (err) {
           set({ error: getErrorMessage(err) || 'Login failed' })
@@ -74,7 +63,6 @@ export const useAuthStore = create<AuthState>()(
           const response = await sendCommand('auth.register', { name, email, password, is_active, role })
 
           set({ token: response.token, user: response.user })
-          get().setTokenCookie(response.token)
           refreshAttempts = 0
         } catch (err) {
           const errorMessage = getErrorMessage(err) || 'Registration failed'
@@ -87,7 +75,6 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         set({ token: null, user: null })
-        get().setTokenCookie(null)
         try {
           const sendCommand = useWebSocketStore.getState().sendCommand
           const socket = useWebSocketStore.getState().socket
@@ -113,14 +100,12 @@ export const useAuthStore = create<AuthState>()(
           const response = await sendCommand('auth.refresh', null)
 
           set({ token: response.token, user: response.user, error: null })
-          get().setTokenCookie(response.token)
           refreshAttempts = 0
           console.log('[Auth] Token refreshed')
         } catch (err) {
           refreshAttempts++
           console.error(`[Auth] Token refresh failed (Attempt ${refreshAttempts})`, err)
           set({ token: null, user: null, error: getErrorMessage(err) })
-          get().setTokenCookie(null)
 
           if (refreshAttempts >= MAX_REFRESH_RETRIES) {
             console.warn('[Auth] Max refresh attempts reached. Logging out...')
@@ -146,7 +131,6 @@ export const useAuthStore = create<AuthState>()(
           set({ user: response.user })
         } catch (err) {
           set({ token: null, user: null, error: getErrorMessage(err) })
-          get().setTokenCookie(null)
         } finally {
           set({ loading: false })
         }
