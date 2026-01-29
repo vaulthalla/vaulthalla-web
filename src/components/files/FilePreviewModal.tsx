@@ -47,7 +47,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
           </button>
 
           <div className="grid grid-cols-1 gap-0 md:grid-cols-3">
-            <div className="relative col-span-2 flex aspect-video h-[300px] items-center justify-center bg-gray-800 md:aspect-auto md:h-[500px]">
+            <div className="relative col-span-2 flex aspect-video h-75 items-center justify-center bg-gray-800 md:aspect-auto md:h-[500px]">
               <Image
                 src={previewUrl}
                 alt={file.name}
@@ -55,6 +55,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ file, onClos
                 className="rounded-l-2xl object-contain"
                 sizes="(max-width: 768px) 100vw, 66vw"
                 priority
+                unoptimized
               />
             </div>
             <div className="flex flex-col justify-center space-y-4 p-6 text-white">

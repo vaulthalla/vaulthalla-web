@@ -3,11 +3,7 @@ import type { NextConfig } from 'next'
 const isTurbo = process.env.NEXT_TURBO === 'true'
 
 const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [{ protocol: 'http', hostname: '127.0.0.1', port: '36970', pathname: '/preview*' }],
-    dangerouslyAllowLocalIP: true,
-  },
-  allowedDevOrigins: ['127.0.0.1', 'http://localhost:3000'],
+  images: { localPatterns: [{ pathname: '/preview**' }] },
   turbopack: {
     rules: {
       '*.svg': { loaders: [{ loader: '@svgr/webpack', options: { icon: true, fill: 'currentColor' } }], as: '*.js' },
